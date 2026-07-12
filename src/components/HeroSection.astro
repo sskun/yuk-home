@@ -11,7 +11,11 @@ const effect = data.backgroundEffect ?? 'none';
 ---
 
 <section id={data.id} class="hero" data-bg={effect}>
-  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="hero-bg" aria-hidden="true">
+    <span class="blob blob-1"></span>
+    <span class="blob blob-2"></span>
+    <span class="blob blob-3"></span>
+  </div>
   <div class="hero-inner">
     <h1 class="headline" data-animate style={`--animate-delay:${delay}ms`}>{data.headline}</h1>
     <p class="subheadline" data-animate style={`--animate-delay:${delay + 120}ms`}>{data.subheadline}</p>
@@ -24,12 +28,27 @@ const effect = data.backgroundEffect ?? 'none';
             target={cta.external ? '_blank' : undefined}
             rel={cta.external ? 'noopener noreferrer' : undefined}
           >
-            {cta.label}
+            <span>{cta.label}</span>
+            {cta.external && (
+              <svg class="ext" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <path
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M14 5h5v5M19 5l-8 8M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6"
+                />
+              </svg>
+            )}
           </a>
         ))
       }
     </div>
   </div>
+  <a class="scroll-cue" href="#features" aria-label="向下滚动查看更多">
+    <span class="mouse"><span class="wheel"></span></span>
+  </a>
 </section>
 
 <style>
@@ -45,25 +64,53 @@ const effect = data.backgroundEffect ?? 'none';
 
   .hero-bg {
     position: absolute;
-    inset: -20%;
+    inset: 0;
     z-index: 0;
-    filter: blur(60px);
-    opacity: 0.55;
+    overflow: hidden;
   }
 
-  /* 极光效果：多色渐变缓慢流动 */
-  .hero[data-bg='aurora'] .hero-bg {
-    background:
-      radial-gradient(40% 40% at 30% 30%, var(--color-primary), transparent 70%),
-      radial-gradient(40% 40% at 70% 60%, var(--color-accent), transparent 70%),
-      radial-gradient(50% 50% at 50% 80%, var(--color-primary), transparent 70%);
-    animation: aurora 16s ease-in-out infinite alternate;
+  /* 光斑：大尺寸高斯模糊色块，仅用 transform 做缓慢漂移（合成层，不触发重排） */
+  .blob {
+    position: absolute;
+    width: 46vmax;
+    height: 46vmax;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.5;
+    will-change: transform;
   }
 
-  .hero[data-bg='gradient-flow'] .hero-bg {
-    background: linear-gradient(120deg, var(--color-primary), var(--color-accent), var(--color-primary));
-    background-size: 200% 200%;
-    animation: flow 12s ease infinite;
+  .blob-1 {
+    top: -12%;
+    left: -6%;
+    background: radial-gradient(circle at 30% 30%, var(--color-primary), transparent 70%);
+    animation: drift-a 18s ease-in-out infinite alternate;
+  }
+
+  .blob-2 {
+    top: 8%;
+    right: -10%;
+    background: radial-gradient(circle at 60% 40%, var(--color-accent), transparent 70%);
+    animation: drift-b 22s ease-in-out infinite alternate;
+  }
+
+  .blob-3 {
+    bottom: -18%;
+    left: 30%;
+    background: radial-gradient(circle at 50% 50%, var(--color-primary), transparent 70%);
+    opacity: 0.35;
+    animation: drift-c 26s ease-in-out infinite alternate;
+  }
+
+  /* gradient-flow 效果：整体色块流动更强 */
+  .hero[data-bg='gradient-flow'] .blob {
+    filter: blur(70px);
+    opacity: 0.6;
+  }
+
+  /* none：不展示动态光斑 */
+  .hero[data-bg='none'] .hero-bg {
+    display: none;
   }
 
   .hero-inner {
@@ -73,19 +120,33 @@ const effect = data.backgroundEffect ?? 'none';
   }
 
   .headline {
-    font-size: clamp(2.5rem, 7vw, 5rem);
-    line-height: 1.1;
-    margin: 0 0 1rem;
-    background: linear-gradient(90deg, var(--fg), var(--color-accent));
+    font-size: clamp(2.6rem, 7.5vw, 5.25rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+    margin: 0 0 1.1rem;
+    /* 三色流光渐变：background-position 缓慢位移，面积可控、开销低 */
+    background: linear-gradient(
+      100deg,
+      var(--fg) 0%,
+      var(--color-accent) 40%,
+      var(--color-primary) 60%,
+      var(--fg) 100%
+    );
+    background-size: 220% auto;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    animation: shimmer 9s linear infinite;
   }
 
   .subheadline {
-    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
-    color: var(--muted);
+    font-size: clamp(1.05rem, 2.5vw, 1.45rem);
+    color: var(--muted-strong);
     margin: 0 0 2.5rem;
+    font-family: var(--font-mono);
+    font-weight: 400;
+    letter-spacing: 0.01em;
   }
 
   .ctas {
@@ -96,39 +157,146 @@ const effect = data.backgroundEffect ?? 'none';
   }
 
   .cta {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
     padding: 0.85rem 1.8rem;
     border-radius: 999px;
     font-weight: 600;
     text-decoration: none;
+    cursor: pointer;
+    position: relative;
+    isolation: isolate;
     transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
+      transform 0.25s var(--ease-out),
+      box-shadow 0.25s var(--ease-out),
+      border-color 0.25s var(--ease-out),
+      background 0.25s var(--ease-out);
   }
 
   .cta:hover {
     transform: translateY(-2px);
   }
 
+  .cta:active {
+    transform: translateY(0);
+  }
+
+  .cta .ext {
+    opacity: 0.85;
+    transition: transform 0.25s var(--ease-out);
+  }
+
+  .cta:hover .ext {
+    transform: translate(2px, -2px);
+  }
+
   .cta.primary {
-    background: var(--color-primary);
+    background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 60%, var(--color-accent)));
     color: #fff;
-    box-shadow: 0 8px 30px color-mix(in srgb, var(--color-primary) 50%, transparent);
+    box-shadow: 0 10px 34px color-mix(in srgb, var(--color-primary) 45%, transparent);
+  }
+
+  .cta.primary:hover {
+    box-shadow: 0 14px 44px color-mix(in srgb, var(--color-primary) 60%, transparent);
   }
 
   .cta.ghost {
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     background: var(--surface);
     color: var(--fg);
+    backdrop-filter: blur(8px);
   }
 
-  @keyframes aurora {
-    0% { transform: translate(0, 0) rotate(0deg); }
-    100% { transform: translate(4%, 6%) rotate(8deg); }
+  .cta.ghost:hover {
+    border-color: color-mix(in srgb, var(--color-accent) 60%, transparent);
+    background: var(--surface-2);
   }
 
-  @keyframes flow {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+  /* 滚动提示：底部鼠标图标，滚轮做轻微上下动画 */
+  .scroll-cue {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+    opacity: 0.65;
+    transition: opacity 0.25s var(--ease-out);
+  }
+
+  .scroll-cue:hover {
+    opacity: 1;
+  }
+
+  .mouse {
+    display: block;
+    width: 24px;
+    height: 38px;
+    border: 2px solid var(--muted);
+    border-radius: 999px;
+    position: relative;
+  }
+
+  .wheel {
+    position: absolute;
+    top: 7px;
+    left: 50%;
+    width: 3px;
+    height: 7px;
+    margin-left: -1.5px;
+    border-radius: 999px;
+    background: var(--color-accent);
+    animation: wheel 1.6s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    to {
+      background-position: -220% center;
+    }
+  }
+
+  @keyframes drift-a {
+    to {
+      transform: translate(6%, 8%) scale(1.08);
+    }
+  }
+
+  @keyframes drift-b {
+    to {
+      transform: translate(-7%, 5%) scale(1.1);
+    }
+  }
+
+  @keyframes drift-c {
+    to {
+      transform: translate(4%, -6%) scale(1.05);
+    }
+  }
+
+  @keyframes wheel {
+    0% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    70% {
+      transform: translateY(10px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 0;
+    }
+  }
+
+  /* 无障碍：减少动态时停掉所有装饰性动画，保留静态终态 */
+  @media (prefers-reduced-motion: reduce) {
+    .blob,
+    .headline,
+    .wheel {
+      animation: none;
+    }
+    .scroll-cue {
+      display: none;
+    }
   }
 </style>

@@ -36,6 +36,7 @@ const { data, delay } = Astro.props;
   .footer {
     padding: 3rem 2rem;
     border-top: 1px solid var(--border);
+    background: linear-gradient(to top, var(--bg-elev), transparent);
   }
 
   .inner {
@@ -51,6 +52,8 @@ const { data, delay } = Astro.props;
   .copyright {
     margin: 0;
     color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
   }
 
   .links {
@@ -62,12 +65,30 @@ const { data, delay } = Astro.props;
   }
 
   .links a {
+    position: relative;
     color: var(--muted);
     text-decoration: none;
-    transition: color 0.2s ease;
+    transition: color 0.2s var(--ease-out);
+  }
+
+  /* 下划线由中间向两侧展开，纯 transform 动画 */
+  .links a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -3px;
+    height: 1px;
+    background: var(--color-accent);
+    transform: scaleX(0);
+    transition: transform 0.25s var(--ease-out);
   }
 
   .links a:hover {
     color: var(--color-accent);
+  }
+
+  .links a:hover::after {
+    transform: scaleX(1);
   }
 </style>

@@ -22,6 +22,15 @@ const config: SiteConfig = {
     heading: '全部文章',
     intro: '这里汇集了我写下的文章，点击任意卡片阅读全文。',
   },
+  // 全站浮动导航栏：品牌 + 链接（内部链接与外链混用）
+  nav: {
+    brand: 'yuk',
+    links: [
+      { label: '首页', href: '/' },
+      { label: '文章', href: '/article' },
+      { label: 'GitHub', href: 'https://github.com', external: true },
+    ],
+  },
   sections: [
     {
       id: 'hero',

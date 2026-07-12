@@ -120,6 +120,46 @@ describe('validateConfig - articleIndex（文章列表页元信息）', () => {
   );
 });
 
+describe('validateConfig - nav（全站导航栏）', () => {
+  it('不提供 nav 时应通过（可选字段）', () => {
+    const cfg = makeValidConfig();
+    expect(validateConfig(cfg)).toBe(cfg);
+  });
+
+  it('提供合法 nav 时应通过', () => {
+    const cfg = makeValidConfig();
+    cfg.nav = {
+      brand: 'yuk',
+      links: [
+        { label: '首页', href: '/' },
+        { label: 'GitHub', href: 'https://github.com', external: true },
+      ],
+    };
+    expect(validateConfig(cfg)).toBe(cfg);
+  });
+
+  it('nav.brand 为空应报错且含字段路径', () => {
+    const cfg = makeValidConfig();
+    cfg.nav = { brand: '', links: [] };
+    expect(() => validateConfig(cfg)).toThrow(/nav\.brand/);
+  });
+
+  it('nav.links 非数组应报错', () => {
+    const cfg = makeValidConfig();
+    // @ts-expect-error 故意注入非法类型
+    cfg.nav = { brand: 'yuk', links: 'x' };
+    expect(() => validateConfig(cfg)).toThrow(/nav\.links/);
+  });
+
+  it('nav.links 项缺少 label/href 应报错并含索引路径', () => {
+    const cfg = makeValidConfig();
+    // @ts-expect-error 故意构造非法链接项
+    cfg.nav = { brand: 'yuk', links: [{ label: '', href: '' }] };
+    expect(() => validateConfig(cfg)).toThrow(/nav\.links\[0\]\.label/);
+    expect(() => validateConfig(cfg)).toThrow(/nav\.links\[0\]\.href/);
+  });
+});
+
 describe('isCssColor', () => {
   it.each(['#fff', '#ffffff', '#ffffff80', 'rgb(0,0,0)', 'rgba(0,0,0,0.5)', 'red', 'rebeccapurple'])(
     '合法颜色 %s',

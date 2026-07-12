@@ -47,28 +47,57 @@ const displayDate = pubDate
     flex-direction: column;
     justify-content: space-between;
     gap: 1rem;
-    padding: 1.6rem 1.6rem 1.4rem;
-    border-radius: 16px;
+    padding: 1.7rem 1.7rem 1.5rem;
+    border-radius: var(--radius-lg);
     background: var(--surface);
     border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
     text-decoration: none;
     color: inherit;
+    overflow: hidden;
+    cursor: pointer;
     transition:
-      transform 0.25s ease,
-      border-color 0.25s ease,
-      background 0.25s ease;
+      transform 0.3s var(--ease-out),
+      border-color 0.3s var(--ease-out),
+      background 0.3s var(--ease-out),
+      box-shadow 0.3s var(--ease-out);
+  }
+
+  /* 左侧强调竖条：悬停时由上向下展开，暗示"进入阅读" */
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(var(--color-primary), var(--color-accent));
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.3s var(--ease-out);
   }
 
   .card:hover {
-    transform: translateY(-4px);
-    border-color: color-mix(in srgb, var(--color-primary) 60%, transparent);
-    background: color-mix(in srgb, var(--color-primary) 6%, var(--surface));
+    transform: translateY(-5px);
+    border-color: color-mix(in srgb, var(--color-primary) 55%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 7%, var(--surface));
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.38);
+  }
+
+  .card:hover::before {
+    transform: scaleY(1);
   }
 
   .title {
     margin: 0 0 0.6rem;
     font-size: 1.3rem;
+    font-weight: 600;
     line-height: 1.35;
+    transition: color 0.25s var(--ease-out);
+  }
+
+  .card:hover .title {
+    color: color-mix(in srgb, var(--color-accent) 55%, var(--fg));
   }
 
   .desc {
@@ -86,7 +115,8 @@ const displayDate = pubDate
     flex-wrap: wrap;
     align-items: center;
     gap: 0.6rem 1rem;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
+    font-family: var(--font-mono);
     color: var(--muted);
   }
 
@@ -105,14 +135,14 @@ const displayDate = pubDate
 
   .arrow {
     position: absolute;
-    top: 1.4rem;
-    right: 1.4rem;
+    top: 1.5rem;
+    right: 1.6rem;
     color: var(--color-accent);
     opacity: 0;
-    transform: translateX(-4px);
+    transform: translateX(-6px);
     transition:
-      opacity 0.25s ease,
-      transform 0.25s ease;
+      opacity 0.25s var(--ease-out),
+      transform 0.25s var(--ease-out);
   }
 
   .card:hover .arrow {
