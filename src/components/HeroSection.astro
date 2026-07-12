@@ -1,0 +1,134 @@
+---
+import type { HeroSection } from '../config/schema';
+
+// 首屏主视觉区块：大标题 + 副标题 + CTA 按钮 + 背景动画效果。
+interface Props {
+  data: HeroSection;
+  delay: number;
+}
+const { data, delay } = Astro.props;
+const effect = data.backgroundEffect ?? 'none';
+---
+
+<section id={data.id} class="hero" data-bg={effect}>
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="hero-inner">
+    <h1 class="headline" data-animate style={`--animate-delay:${delay}ms`}>{data.headline}</h1>
+    <p class="subheadline" data-animate style={`--animate-delay:${delay + 120}ms`}>{data.subheadline}</p>
+    <div class="ctas" data-animate style={`--animate-delay:${delay + 240}ms`}>
+      {
+        data.ctas.map((cta) => (
+          <a
+            class:list={['cta', cta.variant]}
+            href={cta.href}
+            target={cta.external ? '_blank' : undefined}
+            rel={cta.external ? 'noopener noreferrer' : undefined}
+          >
+            {cta.label}
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    overflow: hidden;
+    padding: 2rem;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: -20%;
+    z-index: 0;
+    filter: blur(60px);
+    opacity: 0.55;
+  }
+
+  /* 极光效果：多色渐变缓慢流动 */
+  .hero[data-bg='aurora'] .hero-bg {
+    background:
+      radial-gradient(40% 40% at 30% 30%, var(--color-primary), transparent 70%),
+      radial-gradient(40% 40% at 70% 60%, var(--color-accent), transparent 70%),
+      radial-gradient(50% 50% at 50% 80%, var(--color-primary), transparent 70%);
+    animation: aurora 16s ease-in-out infinite alternate;
+  }
+
+  .hero[data-bg='gradient-flow'] .hero-bg {
+    background: linear-gradient(120deg, var(--color-primary), var(--color-accent), var(--color-primary));
+    background-size: 200% 200%;
+    animation: flow 12s ease infinite;
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 1;
+    max-width: var(--max-width);
+  }
+
+  .headline {
+    font-size: clamp(2.5rem, 7vw, 5rem);
+    line-height: 1.1;
+    margin: 0 0 1rem;
+    background: linear-gradient(90deg, var(--fg), var(--color-accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .subheadline {
+    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    color: var(--muted);
+    margin: 0 0 2.5rem;
+  }
+
+  .ctas {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .cta {
+    display: inline-block;
+    padding: 0.85rem 1.8rem;
+    border-radius: 999px;
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .cta:hover {
+    transform: translateY(-2px);
+  }
+
+  .cta.primary {
+    background: var(--color-primary);
+    color: #fff;
+    box-shadow: 0 8px 30px color-mix(in srgb, var(--color-primary) 50%, transparent);
+  }
+
+  .cta.ghost {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--fg);
+  }
+
+  @keyframes aurora {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    100% { transform: translate(4%, 6%) rotate(8deg); }
+  }
+
+  @keyframes flow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+</style>

@@ -1,0 +1,19 @@
+# 构建产物
+dist/
+.output/
+
+# 依赖
+node_modules/
+
+# Astro 生成物
+.astro/
+
+# 环境与日志
+.env
+.env.production
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# 系统文件
+.DS_Store

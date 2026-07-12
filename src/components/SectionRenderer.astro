@@ -1,0 +1,34 @@
+---
+import type { Section, ThemeConfig } from '../config/schema';
+import HeroSection from './HeroSection.astro';
+import FeatureSection from './FeatureSection.astro';
+import ShowcaseSection from './ShowcaseSection.astro';
+import FooterSection from './FooterSection.astro';
+
+// 区块分发器：按 section.type 分发到对应组件；未知类型安全跳过并告警。
+interface Props {
+  section: Section;
+  index: number;
+  theme: ThemeConfig;
+}
+const { section, index, theme } = Astro.props;
+
+// 动画延迟：全局开关与区块开关同时为真才启用，延迟随区块序号递增。
+const animateOn = theme.animationEnabled && section.animate !== false;
+const delay = animateOn ? index * theme.animationBaseDelay : 0;
+---
+
+{
+  section.type === 'hero' ? (
+    <HeroSection data={section} delay={delay} />
+  ) : section.type === 'feature' ? (
+    <FeatureSection data={section} delay={delay} />
+  ) : section.type === 'showcase' ? (
+    <ShowcaseSection data={section} delay={delay} />
+  ) : section.type === 'footer' ? (
+    <FooterSection data={section} delay={delay} />
+  ) : (
+    // 未知类型：不渲染任何 DOM，仅在构建期告警（正常情况下已被 validateConfig 拦截）
+    (console.warn(`[SectionRenderer] 未知区块类型，已跳过：${(section as { type: string }).type}`), null)
+  )
+}
