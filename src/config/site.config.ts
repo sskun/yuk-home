@@ -15,6 +15,13 @@ const config: SiteConfig = {
     animationEnabled: true,
     animationBaseDelay: 120,
   },
+  // 文章列表页（/article）的可见文案
+  articleIndex: {
+    title: '文章 · Astro 宣发首页',
+    description: '记录与分享：技术笔记、项目思考与实践总结。',
+    heading: '全部文章',
+    intro: '这里汇集了我写下的文章，点击任意卡片阅读全文。',
+  },
   sections: [
     {
       id: 'hero',
@@ -24,6 +31,7 @@ const config: SiteConfig = {
       backgroundEffect: 'aurora',
       ctas: [
         { label: '了解特性', href: '#features', variant: 'primary' },
+        { label: '阅读文章', href: '/article', variant: 'primary' },
         { label: '查看展示', href: '#showcase', variant: 'ghost' },
         { label: 'Astro 官网', href: 'https://astro.build', variant: 'ghost', external: true },
       ],
@@ -66,7 +74,7 @@ const config: SiteConfig = {
     {
       id: 'footer',
       type: 'footer',
-      copyright: '© 2025 yukun · Built with Astro',
+      copyright: '© 2026 yuk · Built with Astro',
       links: [
         { label: 'GitHub', href: 'https://github.com', external: true },
         { label: 'Astro Docs', href: 'https://docs.astro.build', external: true },

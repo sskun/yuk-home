@@ -1,0 +1,122 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+// 文章卡片：把单个文章条目渲染成一张可点击卡片。
+// 仅负责“如何渲染”，不做数据获取/过滤/排序（由列表页负责）。
+interface Props {
+  entry: CollectionEntry<'article'>;
+  delay: number; // 进入视口动画延迟（毫秒），由列表页按序号计算
+  lang: string; // 用于日期本地化格式
+}
+
+const { entry, delay, lang } = Astro.props;
+const { title, description, pubDate, tags } = entry.data;
+
+// 卡片链接指向对应详情页；entry.id 即文件名 slug（与 [...slug].astro 一致）
+const href = `/article/${entry.id}`;
+
+const displayDate = pubDate
+  ? new Intl.DateTimeFormat(lang, { dateStyle: 'medium' }).format(pubDate)
+  : undefined;
+---
+
+<a class="card" href={href} data-animate style={`--animate-delay:${delay}ms`}>
+  <article class="body">
+    <h2 class="title">{title}</h2>
+    <p class="desc">{description}</p>
+    <div class="meta">
+      {displayDate && <time datetime={pubDate?.toISOString()}>{displayDate}</time>}
+      {
+        tags.length > 0 && (
+          <ul class="tags">
+            {tags.map((t) => (
+              <li class="tag">#{t}</li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+  </article>
+  <span class="arrow" aria-hidden="true">→</span>
+</a>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.6rem 1.6rem 1.4rem;
+    border-radius: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    text-decoration: none;
+    color: inherit;
+    transition:
+      transform 0.25s ease,
+      border-color 0.25s ease,
+      background 0.25s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--color-primary) 60%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 6%, var(--surface));
+  }
+
+  .title {
+    margin: 0 0 0.6rem;
+    font-size: 1.3rem;
+    line-height: 1.35;
+  }
+
+  .desc {
+    margin: 0;
+    color: var(--muted);
+    /* 摘要最多显示三行，超出省略，保证卡片高度整齐 */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 1rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tag {
+    color: var(--color-accent);
+  }
+
+  .arrow {
+    position: absolute;
+    top: 1.4rem;
+    right: 1.4rem;
+    color: var(--color-accent);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition:
+      opacity 0.25s ease,
+      transform 0.25s ease;
+  }
+
+  .card:hover .arrow {
+    opacity: 1;
+    transform: none;
+  }
+</style>

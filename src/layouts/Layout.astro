@@ -9,10 +9,12 @@ interface Props {
   author?: string;
   favicon?: string;
   ogImage?: string;
+  /** OpenGraph 类型，首页为 website，文章页传 article */
+  ogType?: string;
   theme: ThemeConfig;
 }
 
-const { title, description, lang = 'zh-CN', author, favicon, ogImage, theme } = Astro.props;
+const { title, description, lang = 'zh-CN', author, favicon, ogImage, ogType = 'website', theme } = Astro.props;
 
 // 主题色以内联 CSS 变量写在 <html> 上，向下继承给所有区块（含各组件的作用域样式）。
 const themeVars = `--color-primary:${theme.primaryColor};--color-accent:${theme.accentColor};`;
@@ -35,8 +37,11 @@ const themeVars = `--color-primary:${theme.primaryColor};--color-accent:${theme.
     {/* OpenGraph 社交分享元信息 */}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     {ogImage && <meta property="og:image" content={ogImage} />}
+
+    {/* 供具体页面注入额外的 head 内容（如文章页的 JSON-LD、canonical、文章级 og 标签） */}
+    <slot name="head" />
   </head>
   <body>
     <slot />

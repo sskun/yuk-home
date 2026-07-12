@@ -8,6 +8,20 @@ export interface SiteConfig {
   site: SiteMeta;
   theme: ThemeConfig;
   sections: Section[];
+  /** 文章列表页可见文案（可选）；缺省时列表页回落到内置文案 */
+  articleIndex?: ArticleIndexMeta;
+}
+
+/** 文章列表页（/article）的可见文案，保持“零硬编码文案”原则 */
+export interface ArticleIndexMeta {
+  /** 列表页 <title> / og:title */
+  title: string;
+  /** 列表页 meta description */
+  description: string;
+  /** 页面大标题（H1） */
+  heading: string;
+  /** 副标题/引言（可选） */
+  intro?: string;
 }
 
 /** 站点级元信息（用于 SEO 与 head） */
@@ -96,6 +110,8 @@ export interface ShowcaseItem {
   href: string;
   thumbnail?: string;
   tags?: string[];
+  /** 是否外链（新窗口打开并带 rel="noopener noreferrer"） */
+  external?: boolean;
 }
 
 export interface LinkItem {
@@ -179,6 +195,18 @@ export function validateConfig(raw: unknown): SiteConfig {
         errors.push(...validateSectionByType(s, path));
       }
     });
+  }
+
+  // 4. 文章列表页元信息（可选，提供时校验必填字段）
+  if (cfg.articleIndex !== undefined) {
+    const ai = cfg.articleIndex as Record<string, unknown>;
+    if (ai === null || typeof ai !== 'object') {
+      errors.push('articleIndex: 必须为对象');
+    } else {
+      if (!isNonEmptyString(ai.title)) errors.push('articleIndex.title: 不能为空');
+      if (!isNonEmptyString(ai.description)) errors.push('articleIndex.description: 不能为空');
+      if (!isNonEmptyString(ai.heading)) errors.push('articleIndex.heading: 不能为空');
+    }
   }
 
   if (errors.length > 0) {
