@@ -99,6 +99,22 @@ const displayDate = pubDate
     </main>
   </div>
 
+  <script>
+    // Mermaid 流程图：仅当页面存在 .mermaid 块时才动态加载 mermaid（按需，不拖累无图页面）
+    const blocks = document.querySelectorAll<HTMLElement>('.mermaid');
+    if (blocks.length > 0) {
+      const isDark = true; // 站点为深色主题
+      import('mermaid').then(({ default: mermaid }) => {
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: isDark ? 'dark' : 'default',
+          securityLevel: 'strict',
+        });
+        mermaid.run({ nodes: Array.from(blocks) });
+      });
+    }
+  </script>
+
   {toc.length > 0 && (
     <script>
       // 滚动高亮：观察正文标题，进入视口时高亮对应目录项（scroll-spy）
@@ -346,5 +362,22 @@ const displayDate = pubDate
     max-width: 100%;
     height: auto;
     border-radius: 8px;
+  }
+
+  /* Mermaid 流程图：渲染前隐藏源码文本，渲染后居中展示 */
+  .article-body :global(.mermaid) {
+    margin: 1.75rem 0;
+    padding: 1.25rem;
+    border-radius: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    text-align: center;
+    overflow-x: auto;
+  }
+
+  /* 未渲染完成前不显示原始定义文本，避免闪烁 */
+  .article-body :global(.mermaid:not([data-processed])) {
+    color: transparent;
+    min-height: 2rem;
   }
 </style>
