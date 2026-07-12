@@ -1,0 +1,27 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SectionRenderer from '../components/SectionRenderer.astro';
+import rawConfig from '../config/site.config';
+import { validateConfig } from '../config/schema';
+
+// 首页装配器：构建期校验配置，按 sections 顺序渲染，页面零硬编码文案。
+const config = validateConfig(rawConfig);
+---
+
+<Layout
+  title={config.site.title}
+  description={config.site.description}
+  lang={config.site.lang}
+  author={config.site.author}
+  favicon={config.site.favicon}
+  ogImage={config.site.ogImage}
+  theme={config.theme}
+>
+  {config.sections.map((section, i) => <SectionRenderer section={section} index={i} theme={config.theme} />)}
+</Layout>
+
+<script>
+  // 动画初始化：进入视口触发，尊重 prefers-reduced-motion（见任务 8）
+  import { initAnimations } from '../scripts/animate';
+  initAnimations();
+</script>

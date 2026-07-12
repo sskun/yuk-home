@@ -1,0 +1,121 @@
+---
+import type { ShowcaseSection } from '../config/schema';
+
+// 展示区块：项目/Demo 入口卡片列表（面向未来扩展）。
+interface Props {
+  data: ShowcaseSection;
+  delay: number;
+}
+const { data, delay } = Astro.props;
+---
+
+<section id={data.id} class="showcase">
+  <div class="inner">
+    <h2 class="heading" data-animate style={`--animate-delay:${delay}ms`}>{data.heading}</h2>
+    <div class="grid">
+      {
+        data.items.map((item, i) => (
+          <a
+            class="item"
+            href={item.href}
+            target={item.external ? '_blank' : undefined}
+            rel={item.external ? 'noopener noreferrer' : undefined}
+            data-animate
+            style={`--animate-delay:${delay + 120 + i * 90}ms`}
+          >
+            {item.thumbnail && <img class="thumb" src={item.thumbnail} alt={item.title} loading="lazy" />}
+            <div class="body">
+              <h3 class="item-title">{item.title}</h3>
+              <p class="item-desc">{item.description}</p>
+              {item.tags && (
+                <ul class="tags">
+                  {item.tags.map((t) => (
+                    <li class="tag">{t}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .showcase {
+    padding: 6rem 2rem;
+  }
+
+  .inner {
+    max-width: var(--max-width);
+    margin: 0 auto;
+  }
+
+  .heading {
+    font-size: clamp(1.8rem, 4vw, 2.75rem);
+    text-align: center;
+    margin: 0 0 3rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .item {
+    display: block;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    text-decoration: none;
+    transition:
+      transform 0.25s ease,
+      border-color 0.25s ease;
+  }
+
+  .item:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--color-primary) 60%, transparent);
+  }
+
+  .thumb {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    display: block;
+  }
+
+  .body {
+    padding: 1.5rem;
+  }
+
+  .item-title {
+    margin: 0 0 0.5rem;
+    font-size: 1.25rem;
+  }
+
+  .item-desc {
+    margin: 0 0 1rem;
+    color: var(--muted);
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tag {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+    color: var(--color-accent);
+  }
+</style>

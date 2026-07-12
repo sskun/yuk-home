@@ -1,0 +1,105 @@
+---
+import type { ThemeConfig } from '../config/schema';
+
+// 全局布局：提供 html/head/body 骨架，注入 SEO 元信息与主题 CSS 变量。
+interface Props {
+  title: string;
+  description: string;
+  lang?: string;
+  author?: string;
+  favicon?: string;
+  ogImage?: string;
+  theme: ThemeConfig;
+}
+
+const { title, description, lang = 'zh-CN', author, favicon, ogImage, theme } = Astro.props;
+
+// 主题色以内联 CSS 变量写在 <html> 上，向下继承给所有区块（含各组件的作用域样式）。
+const themeVars = `--color-primary:${theme.primaryColor};--color-accent:${theme.accentColor};`;
+---
+
+<!doctype html>
+<html lang={lang} style={themeVars}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {/* 尽早标记 JS 可用：仅当 JS 开启时才隐藏待动画元素，保证禁用 JS 时内容完整可见 */}
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {author && <meta name="author" content={author} />}
+    {favicon && <link rel="icon" href={favicon} />}
+
+    {/* OpenGraph 社交分享元信息 */}
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+{/* 全局基础样式：设计令牌、排版与 data-animate 动画契约。data-animate 是跨组件契约，必须全局。 */}
+<style is:global>
+  :root {
+    --bg: #0b0b12;
+    --fg: #e8e8f0;
+    --muted: #a0a0b8;
+    --surface: rgba(255, 255, 255, 0.04);
+    --border: rgba(255, 255, 255, 0.1);
+    --max-width: 1080px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  /* —— 动画契约：仅在 JS 可用时（html.js）隐藏，否则内容默认可见（渐进增强） —— */
+  html.js [data-animate] {
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+      opacity 0.6s ease,
+      transform 0.6s ease;
+    transition-delay: var(--animate-delay, 0ms);
+    will-change: opacity, transform;
+  }
+
+  html.js [data-animate].in-view {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* 尊重无障碍偏好：减少动态时不做过渡，直接展示终态 */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    html.js [data-animate] {
+      transition: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>

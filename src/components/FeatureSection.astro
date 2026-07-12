@@ -1,0 +1,88 @@
+---
+import type { FeatureSection } from '../config/schema';
+
+// 特性介绍区块：区块标题 + 引言 + 特性卡片网格。
+interface Props {
+  data: FeatureSection;
+  delay: number;
+}
+const { data, delay } = Astro.props;
+---
+
+<section id={data.id} class="feature">
+  <div class="inner">
+    <h2 class="heading" data-animate style={`--animate-delay:${delay}ms`}>{data.heading}</h2>
+    {data.intro && <p class="intro" data-animate style={`--animate-delay:${delay + 100}ms`}>{data.intro}</p>}
+    <div class="grid">
+      {
+        data.features.map((f, i) => (
+          <article class="card" data-animate style={`--animate-delay:${delay + 150 + i * 80}ms`}>
+            {f.icon && <div class="icon">{f.icon}</div>}
+            <h3 class="card-title">{f.title}</h3>
+            <p class="card-desc">{f.description}</p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .feature {
+    padding: 6rem 2rem;
+  }
+
+  .inner {
+    max-width: var(--max-width);
+    margin: 0 auto;
+  }
+
+  .heading {
+    font-size: clamp(1.8rem, 4vw, 2.75rem);
+    text-align: center;
+    margin: 0 0 0.75rem;
+  }
+
+  .intro {
+    text-align: center;
+    color: var(--muted);
+    margin: 0 auto 3rem;
+    max-width: 40rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .card {
+    padding: 1.75rem;
+    border-radius: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    transition:
+      transform 0.25s ease,
+      border-color 0.25s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+  }
+
+  .icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .card-title {
+    margin: 0 0 0.5rem;
+    font-size: 1.2rem;
+  }
+
+  .card-desc {
+    margin: 0;
+    color: var(--muted);
+  }
+</style>
