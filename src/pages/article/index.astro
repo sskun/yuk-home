@@ -1,0 +1,104 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import rawConfig from '../../config/site.config';
+import { validateConfig } from '../../config/schema';
+
+// 文章列表页（/article）：从 article 集合读取全部非草稿文章，按发布时间倒序展示。
+const config = validateConfig(rawConfig);
+
+// 列表页可见文案走配置；未提供时回落到内置缺省文案（保持零硬编码原则）
+const meta = config.articleIndex ?? {
+  title: '文章',
+  description: '全部文章列表',
+  heading: '文章',
+  intro: undefined as string | undefined,
+};
+
+// 过滤草稿：与详情页 [...slug].astro 的策略保持一致
+const entries = await getCollection('article', ({ data }) => !data.draft);
+
+// 排序：有 pubDate 者按时间降序（新在前），无日期者排最后并以标题升序稳定次序
+entries.sort((a, b) => {
+  const ta = a.data.pubDate ? a.data.pubDate.getTime() : -Infinity;
+  const tb = b.data.pubDate ? b.data.pubDate.getTime() : -Infinity;
+  if (ta !== tb) return tb - ta;
+  return a.data.title.localeCompare(b.data.title);
+});
+
+const base = config.theme.animationEnabled ? config.theme.animationBaseDelay : 0;
+---
+
+<Layout
+  title={meta.title}
+  description={meta.description}
+  lang={config.site.lang}
+  author={config.site.author}
+  favicon={config.site.favicon}
+  ogImage={config.site.ogImage}
+  theme={config.theme}
+>
+  <main class="article-list">
+    <header class="list-header">
+      <h1 data-animate style="--animate-delay:0ms">{meta.heading}</h1>
+      {meta.intro && <p class="intro" data-animate style={`--animate-delay:${base}ms`}>{meta.intro}</p>}
+    </header>
+
+    {
+      entries.length > 0 ? (
+        <div class="grid">
+          {entries.map((entry, i) => (
+            <ArticleCard entry={entry} delay={base + (i + 1) * 90} lang={config.site.lang} />
+          ))}
+        </div>
+      ) : (
+        <p class="empty" data-animate style={`--animate-delay:${base}ms`}>
+          还没有已发布的文章，敬请期待。
+        </p>
+      )
+    }
+  </main>
+</Layout>
+
+<script>
+  // 复用全局动画脚本：卡片进入视口触发，尊重 prefers-reduced-motion
+  import { initAnimations } from '../../scripts/animate';
+  initAnimations();
+</script>
+
+<style>
+  .article-list {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 5rem 1.5rem 6rem;
+  }
+
+  .list-header {
+    margin-bottom: 3rem;
+    text-align: center;
+  }
+
+  .list-header h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin: 0 0 0.75rem;
+  }
+
+  .intro {
+    margin: 0 auto;
+    max-width: 640px;
+    color: var(--muted);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 4rem 0;
+  }
+</style>

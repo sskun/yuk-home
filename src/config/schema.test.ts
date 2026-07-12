@@ -97,6 +97,29 @@ describe('validateConfig - 非法输入', () => {
   });
 });
 
+describe('validateConfig - articleIndex（文章列表页元信息）', () => {
+  it('不提供 articleIndex 时应通过（可选字段）', () => {
+    const cfg = makeValidConfig();
+    expect(validateConfig(cfg)).toBe(cfg);
+  });
+
+  it('提供合法 articleIndex 时应通过', () => {
+    const cfg = makeValidConfig();
+    cfg.articleIndex = { title: '文章', description: '全部文章', heading: '文章列表' };
+    expect(validateConfig(cfg)).toBe(cfg);
+  });
+
+  it.each(['title', 'description', 'heading'] as const)(
+    'articleIndex.%s 为空应报错且含字段路径',
+    (field) => {
+      const cfg = makeValidConfig();
+      cfg.articleIndex = { title: '文章', description: '全部文章', heading: '文章列表' };
+      cfg.articleIndex[field] = '';
+      expect(() => validateConfig(cfg)).toThrow(new RegExp(`articleIndex\\.${field}`));
+    },
+  );
+});
+
 describe('isCssColor', () => {
   it.each(['#fff', '#ffffff', '#ffffff80', 'rgb(0,0,0)', 'rgba(0,0,0,0.5)', 'red', 'rebeccapurple'])(
     '合法颜色 %s',
