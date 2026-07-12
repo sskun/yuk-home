@@ -16,6 +16,7 @@ const config = validateConfig(rawConfig);
   favicon={config.site.favicon}
   ogImage={config.site.ogImage}
   theme={config.theme}
+  nav={config.nav}
 >
   {config.sections.map((section, i) => <SectionRenderer section={section} index={i} theme={config.theme} />)}
 </Layout>

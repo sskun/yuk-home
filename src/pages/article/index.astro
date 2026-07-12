@@ -38,11 +38,19 @@ const base = config.theme.animationEnabled ? config.theme.animationBaseDelay : 0
   favicon={config.site.favicon}
   ogImage={config.site.ogImage}
   theme={config.theme}
+  nav={config.nav}
 >
   <main class="article-list">
     <header class="list-header">
       <h1 data-animate style="--animate-delay:0ms">{meta.heading}</h1>
       {meta.intro && <p class="intro" data-animate style={`--animate-delay:${base}ms`}>{meta.intro}</p>}
+      {
+        entries.length > 0 && (
+          <p class="count" data-animate style={`--animate-delay:${base + 60}ms`}>
+            共 {entries.length} 篇
+          </p>
+        )
+      }
     </header>
 
     {
@@ -71,7 +79,8 @@ const base = config.theme.animationEnabled ? config.theme.animationBaseDelay : 0
   .article-list {
     max-width: var(--max-width);
     margin: 0 auto;
-    padding: 5rem 1.5rem 6rem;
+    /* 顶部留白为浮动导航栏让位 */
+    padding: 7rem 1.5rem 6rem;
   }
 
   .list-header {
@@ -81,12 +90,21 @@ const base = config.theme.animationEnabled ? config.theme.animationBaseDelay : 0
 
   .list-header h1 {
     font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.015em;
     margin: 0 0 0.75rem;
   }
 
   .intro {
     margin: 0 auto;
     max-width: 640px;
+    color: var(--muted);
+  }
+
+  .count {
+    margin: 1rem 0 0;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
     color: var(--muted);
   }
 

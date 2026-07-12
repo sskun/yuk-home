@@ -1,0 +1,205 @@
+---
+import type { NavConfig } from '../config/schema';
+
+// 全站浮动导航栏：玻璃拟态胶囊，品牌 + 链接。
+// 当前页高亮：内部链接按路径匹配（'/' 精确，其余按前缀），滚动时由脚本增强背景。
+interface Props {
+  nav: NavConfig;
+}
+const { nav } = Astro.props;
+
+const pathname = Astro.url.pathname;
+// 归一化：去掉末尾斜杠便于比较（首页 '/' 保留）
+const normalize = (p: string) => (p.length > 1 ? p.replace(/\/$/, '') : p);
+const current = normalize(pathname);
+
+function isActive(href: string, external?: boolean): boolean {
+  if (external) return false;
+  const target = normalize(href);
+  if (target === '/') return current === '/';
+  return current === target || current.startsWith(target + '/');
+}
+---
+
+<header class="nav" data-nav>
+  <nav class="nav-inner" aria-label="主导航">
+    <a class="brand" href="/" aria-label={`${nav.brand} 首页`}>
+      <span class="brand-dot" aria-hidden="true"></span>
+      <span class="brand-name">{nav.brand}</span>
+    </a>
+    <ul class="links">
+      {
+        nav.links.map((link) => (
+          <li>
+            <a
+              class:list={['link', { active: isActive(link.href, link.external) }]}
+              href={link.href}
+              target={link.external ? '_blank' : undefined}
+              rel={link.external ? 'noopener noreferrer' : undefined}
+              aria-current={isActive(link.href, link.external) ? 'page' : undefined}
+            >
+              {link.label}
+              {link.external && (
+                <svg class="ext" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
+                  <path
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M14 5h5v5M19 5l-8 8M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6"
+                  />
+                </svg>
+              )}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</header>
+
+<script>
+  // 滚动增强：下滑超过阈值给导航加 .scrolled，加深玻璃背景与阴影
+  const el = document.querySelector<HTMLElement>('[data-nav]');
+  if (el) {
+    let ticking = false;
+    const update = () => {
+      el.classList.toggle('scrolled', window.scrollY > 12);
+      ticking = false;
+    };
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(update);
+        }
+      },
+      { passive: true },
+    );
+    update();
+  }
+</script>
+
+<style>
+  .nav {
+    position: fixed;
+    top: 0.9rem;
+    left: 0.9rem;
+    right: 0.9rem;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .nav-inner {
+    pointer-events: auto;
+    width: 100%;
+    max-width: var(--max-width);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.55rem 0.7rem 0.55rem 1.1rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--bg-elev) 55%, transparent);
+    backdrop-filter: blur(14px) saturate(1.4);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    transition:
+      background 0.3s var(--ease-out),
+      border-color 0.3s var(--ease-out),
+      box-shadow 0.3s var(--ease-out);
+  }
+
+  /* 滚动后：背景更实、描边更亮、加投影，保证内容滚过时可读 */
+  .nav.scrolled .nav-inner {
+    background: color-mix(in srgb, var(--bg-elev) 82%, transparent);
+    border-color: var(--border-strong);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    text-decoration: none;
+    color: var(--fg);
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 1.02rem;
+    letter-spacing: -0.01em;
+    padding: 0.2rem 0.4rem;
+    border-radius: 999px;
+  }
+
+  .brand-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    box-shadow: 0 0 12px color-mix(in srgb, var(--color-accent) 70%, transparent);
+    flex-shrink: 0;
+  }
+
+  .links {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      color 0.2s var(--ease-out),
+      background 0.2s var(--ease-out);
+  }
+
+  .link:hover {
+    color: var(--fg);
+    background: var(--surface-2);
+  }
+
+  .link.active {
+    color: var(--fg);
+    background: color-mix(in srgb, var(--color-primary) 22%, transparent);
+  }
+
+  .link .ext {
+    opacity: 0.7;
+  }
+
+  @media (max-width: 560px) {
+    .nav {
+      top: 0.6rem;
+      left: 0.6rem;
+      right: 0.6rem;
+    }
+    .nav-inner {
+      padding: 0.45rem 0.5rem 0.45rem 0.85rem;
+    }
+    .link {
+      padding: 0.4rem 0.6rem;
+      font-size: 0.85rem;
+    }
+    /* 窄屏隐藏品牌文字，仅留圆点，给链接腾空间 */
+    .brand-name {
+      display: none;
+    }
+  }
+</style>

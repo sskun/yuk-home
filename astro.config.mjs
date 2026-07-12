@@ -28,5 +28,11 @@ export default defineConfig({
   output: 'static',
   markdown: {
     remarkPlugins: [remarkMermaid],
+    // Shiki 语法高亮：深色主题，契合站点整体基调。
+    // mermaid 代码块已被 remarkMermaid 转为 <pre class="mermaid">，不会经过 Shiki。
+    shikiConfig: {
+      theme: 'one-dark-pro',
+      wrap: false,
+    },
   },
 });

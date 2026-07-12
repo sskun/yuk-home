@@ -1,5 +1,6 @@
 ---
-import type { ThemeConfig } from '../config/schema';
+import type { ThemeConfig, NavConfig } from '../config/schema';
+import Nav from '../components/Nav.astro';
 
 // 全局布局：提供 html/head/body 骨架，注入 SEO 元信息与主题 CSS 变量。
 interface Props {
@@ -12,9 +13,11 @@ interface Props {
   /** OpenGraph 类型，首页为 website，文章页传 article */
   ogType?: string;
   theme: ThemeConfig;
+  /** 全站导航栏配置（可选）；提供时在顶部渲染浮动导航 */
+  nav?: NavConfig;
 }
 
-const { title, description, lang = 'zh-CN', author, favicon, ogImage, ogType = 'website', theme } = Astro.props;
+const { title, description, lang = 'zh-CN', author, favicon, ogImage, ogType = 'website', theme, nav } = Astro.props;
 
 // 主题色以内联 CSS 变量写在 <html> 上，向下继承给所有区块（含各组件的作用域样式）。
 const themeVars = `--color-primary:${theme.primaryColor};--color-accent:${theme.accentColor};`;
@@ -34,6 +37,14 @@ const themeVars = `--color-primary:${theme.primaryColor};--color-accent:${theme.
     {author && <meta name="author" content={author} />}
     {favicon && <link rel="icon" href={favicon} />}
 
+    {/* 字体：IBM Plex Sans（正文）+ JetBrains Mono（标签/代码），preconnect 降低阻塞、swap 避免 FOIT */}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    />
+
     {/* OpenGraph 社交分享元信息 */}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -44,6 +55,7 @@ const themeVars = `--color-primary:${theme.primaryColor};--color-accent:${theme.
     <slot name="head" />
   </head>
   <body>
+    {nav && <Nav nav={nav} />}
     <slot />
   </body>
 </html>
@@ -51,12 +63,23 @@ const themeVars = `--color-primary:${theme.primaryColor};--color-accent:${theme.
 {/* 全局基础样式：设计令牌、排版与 data-animate 动画契约。data-animate 是跨组件契约，必须全局。 */}
 <style is:global>
   :root {
-    --bg: #0b0b12;
-    --fg: #e8e8f0;
-    --muted: #a0a0b8;
-    --surface: rgba(255, 255, 255, 0.04);
-    --border: rgba(255, 255, 255, 0.1);
+    /* 深色 OLED 基调：分层背景 + 半透明表面，营造玻璃拟态所需的层次 */
+    --bg: #08080e;
+    --bg-elev: #10101c;
+    --fg: #ececf3;
+    --muted: #a6a8c2;
+    --muted-strong: #c4c6dd;
+    --surface: rgba(255, 255, 255, 0.035);
+    --surface-2: rgba(255, 255, 255, 0.06);
+    --border: rgba(255, 255, 255, 0.09);
+    --border-strong: rgba(255, 255, 255, 0.16);
     --max-width: 1080px;
+    --radius: 14px;
+    --radius-lg: 20px;
+    --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    /* 缓动：进入用 ease-out 观感自然（避免 linear 的机械感） */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   * {
@@ -71,24 +94,93 @@ const themeVars = `--color-primary:${theme.primaryColor};--color-accent:${theme.
     margin: 0;
     background: var(--bg);
     color: var(--fg);
-    font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-    line-height: 1.6;
+    font-family: var(--font-sans);
+    line-height: 1.65;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* 全局环境光：固定的静态径向光晕 + 极淡网格，纯 paint 无动画，零运行时开销 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(60% 50% at 15% 0%, color-mix(in srgb, var(--color-primary) 16%, transparent), transparent 70%),
+      radial-gradient(50% 45% at 100% 10%, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 70%),
+      linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+    background-size:
+      100% 100%,
+      100% 100%,
+      44px 44px,
+      44px 44px;
+    -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 55%, transparent 100%);
+    mask-image: radial-gradient(120% 90% at 50% 0%, #000 55%, transparent 100%);
   }
 
   a {
     color: inherit;
   }
 
+  ::selection {
+    background: color-mix(in srgb, var(--color-accent) 30%, transparent);
+    color: var(--fg);
+  }
+
+  /* 细化滚动条，贴合深色主题 */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--color-accent) 45%, var(--border-strong));
+    background-clip: padding-box;
+  }
+
+  /* 键盘可达：所有可聚焦元素统一焦点环 */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
   /* —— 动画契约：仅在 JS 可用时（html.js）隐藏，否则内容默认可见（渐进增强） —— */
+  /* 默认：淡入 + 上移；仅动 transform / opacity，走合成层，60fps 不触发重排 */
   html.js [data-animate] {
     opacity: 0;
-    transform: translateY(24px);
+    transform: translateY(26px);
     transition:
-      opacity 0.6s ease,
-      transform 0.6s ease;
+      opacity 0.7s var(--ease-out),
+      transform 0.7s var(--ease-out);
     transition-delay: var(--animate-delay, 0ms);
     will-change: opacity, transform;
+  }
+
+  /* 可选变体：通过 data-animate="xxx" 指定不同入场方向/形态 */
+  html.js [data-animate='fade'] {
+    transform: none;
+  }
+  html.js [data-animate='scale'] {
+    transform: translateY(20px) scale(0.965);
+  }
+  html.js [data-animate='left'] {
+    transform: translateX(-30px);
+  }
+  html.js [data-animate='right'] {
+    transform: translateX(30px);
   }
 
   html.js [data-animate].in-view {
@@ -105,6 +197,12 @@ const themeVars = `--color-primary:${theme.primaryColor};--color-accent:${theme.
       transition: none;
       opacity: 1;
       transform: none;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
     }
   }
 </style>

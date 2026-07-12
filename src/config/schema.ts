@@ -10,6 +10,23 @@ export interface SiteConfig {
   sections: Section[];
   /** 文章列表页可见文案（可选）；缺省时列表页回落到内置文案 */
   articleIndex?: ArticleIndexMeta;
+  /** 全站浮动导航栏（可选）；提供时在所有页面顶部渲染 */
+  nav?: NavConfig;
+}
+
+/** 全站导航栏配置：品牌名 + 链接列表 */
+export interface NavConfig {
+  /** 品牌名/站点简称，点击回到首页 */
+  brand: string;
+  /** 导航链接列表 */
+  links: NavLink[];
+}
+
+/** 导航链接项 */
+export interface NavLink {
+  label: string;
+  href: string;
+  external?: boolean;
 }
 
 /** 文章列表页（/article）的可见文案，保持“零硬编码文案”原则 */
@@ -206,6 +223,25 @@ export function validateConfig(raw: unknown): SiteConfig {
       if (!isNonEmptyString(ai.title)) errors.push('articleIndex.title: 不能为空');
       if (!isNonEmptyString(ai.description)) errors.push('articleIndex.description: 不能为空');
       if (!isNonEmptyString(ai.heading)) errors.push('articleIndex.heading: 不能为空');
+    }
+  }
+
+  // 5. 导航栏（可选，提供时校验品牌与链接）
+  if (cfg.nav !== undefined) {
+    const nav = cfg.nav as Record<string, unknown>;
+    if (nav === null || typeof nav !== 'object') {
+      errors.push('nav: 必须为对象');
+    } else {
+      if (!isNonEmptyString(nav.brand)) errors.push('nav.brand: 不能为空');
+      if (!Array.isArray(nav.links)) {
+        errors.push('nav.links: 必须为数组');
+      } else {
+        (nav.links as unknown[]).forEach((l, j) => {
+          const link = l as Record<string, unknown>;
+          if (!isNonEmptyString(link.label)) errors.push(`nav.links[${j}].label: 不能为空`);
+          if (!isNonEmptyString(link.href)) errors.push(`nav.links[${j}].href: 不能为空`);
+        });
+      }
     }
   }
 
