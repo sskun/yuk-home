@@ -1,6 +1,8 @@
 ---
 import type { ThemeConfig, NavConfig } from '../config/schema';
 import Nav from '../components/Nav.astro';
+// Tailwind 工具层 + daisyUI 组件层（无 preflight，不改动下方手写令牌与基础排版）
+import '../styles/global.css';
 
 // 全局布局：提供 html/head/body 骨架，注入 SEO 元信息与主题 CSS 变量。
 interface Props {
@@ -20,7 +22,9 @@ interface Props {
 const { title, description, lang = 'zh-CN', author, favicon, ogImage, ogType = 'website', theme, nav } = Astro.props;
 
 // 主题色以内联 CSS 变量写在 <html> 上，向下继承给所有区块（含各组件的作用域样式）。
-const themeVars = `--color-primary:${theme.primaryColor};--color-accent:${theme.accentColor};`;
+// --site-primary / --site-accent 是给 daisyUI 主题用的别名：daisyUI 主题变量本身
+// 也叫 --color-primary，若在那里写 var(--color-primary) 会构成自引用而失效。
+const themeVars = `--color-primary:${theme.primaryColor};--color-accent:${theme.accentColor};--site-primary:${theme.primaryColor};--site-accent:${theme.accentColor};`;
 ---
 
 <!doctype html>

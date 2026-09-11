@@ -1,5 +1,8 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+// Tailwind v4 的 Vite 插件：处理 src/styles/global.css 里的 @import/@plugin，
+// 为工具页提供 daisyUI 组件类。未引 preflight，不影响既有页面样式。
+import tailwindcss from '@tailwindcss/vite';
 
 // remark 插件：把 ```mermaid 代码块转成 <pre class="mermaid">，
 // 从而绕过 Shiki 语法高亮，交给客户端 mermaid 运行时渲染成流程图。
@@ -26,6 +29,9 @@ export default defineConfig({
   site: 'https://yuk-bvc.pages.dev',
   // 纯静态站点，无需 SSR 适配器
   output: 'static',
+  vite: {
+    plugins: [tailwindcss()],
+  },
   markdown: {
     remarkPlugins: [remarkMermaid],
     // Shiki 语法高亮：深色主题，契合站点整体基调。
