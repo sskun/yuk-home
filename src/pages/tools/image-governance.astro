@@ -1,0 +1,967 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import rawConfig from '../../config/site.config';
+import { validateConfig } from '../../config/schema';
+
+// 图片治理工具详情页（/tools/image-governance）：
+// - 页面只提供 shell + 作用域样式；标题/工具栏/画布/粘性动作栏全部由客户端 ImageGovernance 组件渲染
+// - 三栏布局：顶部工具栏（sticky）· 中间画布 · 右侧粘性检查器 · 底部粘性动作栏
+const config = validateConfig(rawConfig);
+
+const tool = config.sections
+  .find((s) => s.type === 'tool-grid')
+  ?.items.find((it) => it.slug === 'image-governance');
+
+const title = tool ? `${tool.title} · 工具` : '图片治理 · 工具';
+const description = tool?.description ?? '浏览器内完成图片裁剪与压缩，不会上传文件。';
+---
+
+<Layout
+  title={title}
+  description={description}
+  lang={config.site.lang}
+  author={config.site.author}
+  favicon={config.site.favicon}
+  ogImage={config.site.ogImage}
+  theme={config.theme}
+  nav={config.nav}
+>
+  {/* data-theme 激活 daisyUI 的 yukhome 主题；主题刻意不设 default，
+      只在本页生效，避免变量外溢到首页 / 工具列表 / 文章页 */}
+  <main class="ig-page" data-theme="yukhome">
+    <section
+      id="ig-root"
+      class="ig-root"
+      data-tool="image-governance"
+      data-animate="fade"
+      aria-label="图片治理工具"
+    >
+      <noscript>
+        <p class="ig-noscript">此工具需要启用 JavaScript 才能使用。</p>
+      </noscript>
+    </section>
+  </main>
+</Layout>
+
+<script>
+  import { mountImageGovernance } from '../../components/tools/ImageGovernance';
+  import { initAnimations } from '../../scripts/animate';
+  const root = document.getElementById('ig-root');
+  if (root) mountImageGovernance(root);
+  initAnimations();
+</script>
+
+<style is:global>
+  /* 图片治理工具的作用域样式（注入全局，因为组件以纯 DOM 形式挂载，不走 .astro scoped） */
+
+  /* —— 局部设计令牌 —— */
+  .ig-page {
+    --ig-toolbar-h: 56px;
+    --ig-actionbar-h: 64px;
+    --ig-inspector-w: 340px;
+    --ig-gap: 16px;
+    --ig-nav-offset: 86px; /* 顶部留白：给 fixed 浮动 nav 让位（nav 底 ~72px + 呼吸） */
+    --ig-sticky-top: 84px; /* 工具条吸顶位置 = nav 底部 + 12px */
+    /* 工作区高度预算：视口高 −（nav 留白 86 + 页头 109 + 工具条 62 + 动作栏 64 + 各段间距 79）。
+       画布与检查器共用此值，两列才会等高、整页才不会冒出视口。
+       数值取自桌面端实测；窄屏由下方媒体查询改为单列 + 静态定位，不依赖此值。 */
+    --ig-workspace-h: max(340px, calc(100vh - 400px));
+    /* 容器宽度对齐全站 --max-width：此前用 1400px 导致与导航栏左右各错位 40px。
+       padding-inline 取 1.1rem，与 Nav.astro 的 .nav-inner 左内距一致，
+       这样页面的左边缘与导航栏品牌字左边缘落在同一条垂线上。 */
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: var(--ig-nav-offset) 1.1rem 2rem;
+    /* daisyUI 会给 [data-theme] 元素铺 base-100 底色，这里保持透明以露出 body 环境光 */
+    background: transparent;
+  }
+
+  .ig-noscript {
+    text-align: center;
+    color: var(--muted);
+    padding: 4rem 0;
+  }
+
+  /* —— 主视图容器：纵向 grid，间距统一 —— */
+  .ig-view {
+    display: grid;
+    gap: var(--ig-gap);
+    align-content: start;
+  }
+
+  /* ============ 页头：返回行 + 标题（非粘性，滚动后让位给工具条） ============ */
+  .ig-pagehead {
+    display: grid;
+    gap: 1.1rem;
+    margin-bottom: 0.35rem;
+  }
+
+  /* 返回行：位于页面最顶部、H1 之上。刻意不加胶囊底色 —— 用背景块会和下方工具条
+     争夺注意力，纯文字 + 箭头更轻，也让「返回」回到它该在的层级。 */
+  .ig-back {
+    justify-self: start; /* grid 内靠左，宽度随内容 */
+    gap: 0.4rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+    /* 去掉 btn-ghost 的横向内距，让箭头与下方 H1 左对齐 */
+    padding-inline: 0;
+  }
+  .ig-back:hover {
+    color: var(--fg);
+  }
+  .ig-back-icon {
+    display: inline-flex;
+    transition: transform 0.2s var(--ease-out);
+  }
+  .ig-back:hover .ig-back-icon {
+    transform: translateX(-2px);
+  }
+  .ig-back-icon svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .ig-heading {
+    display: grid;
+    gap: 0.32rem;
+  }
+  .ig-title {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.022em;
+    line-height: 1.15;
+    color: var(--fg);
+  }
+  .ig-lede {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  /* ============ 工具条：sticky，只放工作控件（文件 chip │ 模式 Tab │ 换一张） ============ */
+  .ig-toolbar {
+    position: sticky;
+    top: var(--ig-sticky-top);
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.5rem 0.6rem;
+    background: color-mix(in srgb, var(--bg-elev) 84%, transparent);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    border: 1px solid var(--border);
+    /* 由 999px 胶囊改为与卡片同族的 --radius：胶囊留给站点导航，工具条是「工作台面」 */
+    border-radius: var(--radius);
+    min-height: var(--ig-toolbar-h);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+  }
+
+  /* 文件 chip 与模式 Tab 之间的竖向分隔：把「文档」和「操作」两组语义分开 */
+  .ig-toolbar-sep {
+    flex-shrink: 0;
+    align-self: stretch;
+    width: 1px;
+    margin-block: 0.4rem;
+    /* 用 border-strong 而非 border：工具条底色本就是半透明深色，
+       border 的 9% 白在这层上完全看不见 */
+    background: var(--border-strong);
+  }
+
+  /* 文件 chip：未上传时 ghost 按钮，已上传时缩略图 + 元信息 */
+  .ig-filechip-slot {
+    min-width: 0;
+    flex: 0 1 auto;
+    display: flex;
+    align-items: center;
+  }
+  .ig-filechip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font: inherit;
+    max-width: 100%;
+    min-width: 0;
+    transition: background 0.2s var(--ease-out), border-color 0.2s var(--ease-out);
+  }
+  /* 未上传：daisyUI btn btn-ghost btn-sm 提供基础度量，这里只改描边与配色 */
+  .ig-filechip.ghost {
+    border: 1px dashed var(--border-strong);
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+  .ig-filechip.ghost:hover {
+    color: var(--fg);
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  }
+  .ig-filechip-icon {
+    display: inline-flex;
+    color: var(--color-accent);
+  }
+  .ig-filechip-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+  /* 已上传：复合控件（缩略图 + 两行文本 + 关闭按钮），非 daisyUI 按钮形态，保留自绘 */
+  .ig-filechip.loaded {
+    padding: 0.22rem 0.3rem 0.22rem 0.28rem;
+    border-radius: var(--radius-field);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--fg);
+  }
+  .ig-filechip-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: var(--bg-elev);
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+  }
+  .ig-filechip-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.25;
+  }
+  .ig-filechip-name {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--fg);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 24ch;
+  }
+  .ig-filechip-meta {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+  /* 关闭按钮：daisyUI btn btn-circle btn-ghost btn-xs 提供圆形与尺寸 */
+  .ig-filechip-clear {
+    flex-shrink: 0;
+    color: var(--muted);
+  }
+  .ig-filechip-clear:hover {
+    color: var(--fg);
+    background: color-mix(in srgb, #ef4444 22%, transparent);
+  }
+  .ig-filechip-clear svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  /* 模式切换：daisyUI tabs tabs-box，仅把配色压回站点玻璃拟态 */
+  .ig-tabs {
+    flex-shrink: 0;
+  }
+  .ig-tabs.tabs-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.2rem;
+    border-radius: 999px;
+  }
+  .ig-tabs .tab {
+    min-height: 30px;
+    padding: 0.3rem 0.95rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--muted);
+    /* 压掉 daisyUI tabs-box 给非激活项铺的实心底色，未选中应保持透明 */
+    background: transparent;
+    transition: color 0.2s var(--ease-out), background 0.2s var(--ease-out);
+  }
+  .ig-tabs .tab:hover:not(.tab-active) {
+    color: var(--fg);
+  }
+  .ig-tabs .tab.tab-active {
+    color: var(--fg);
+    background: color-mix(in srgb, var(--color-primary) 32%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 48%, transparent);
+  }
+
+  /* 弹性占位：把「换一张」推到工具条最右，Tab 紧贴文件 chip「文档 │ 操作」成组 */
+  .ig-toolbar-spacer {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* 换一张：daisyUI btn btn-circle btn-ghost btn-sm */
+  .ig-reset-icon {
+    flex-shrink: 0;
+    color: var(--muted);
+    transition: color 0.2s var(--ease-out), transform 0.3s var(--ease-out);
+  }
+  .ig-reset-icon:hover {
+    color: var(--fg);
+    transform: rotate(-45deg);
+  }
+  .ig-reset-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+  .ig-reset-icon[hidden] {
+    display: none;
+  }
+
+  /* ============ 错误横幅 ============ */
+  .ig-error-slot {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .ig-error-slot:empty {
+    display: none;
+  }
+  /* 底色/描边交给 daisyUI 的 alert alert-error alert-soft，这里只把它的
+     默认 grid 布局改成 flex 以便图标、文本、关闭按钮横向对齐 */
+  .ig-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--fg);
+    font-size: 0.9rem;
+  }
+  .ig-error-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    color: #fca5a5;
+  }
+  .ig-error-icon svg {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+  }
+  .ig-error-text {
+    flex: 1;
+    line-height: 1.5;
+  }
+  /* 关闭按钮：daisyUI btn btn-circle btn-ghost btn-xs 提供圆形与点击区 */
+  .ig-error-close {
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .ig-error-close:hover {
+    color: var(--fg);
+    background: color-mix(in srgb, #ef4444 22%, transparent);
+  }
+  .ig-error-close svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* ============ 空态：大 dropzone ============ */
+  .ig-empty {
+    display: grid;
+    place-items: center;
+    padding: 2rem 0 3rem;
+  }
+  .ig-empty[hidden] {
+    display: none;
+  }
+  .ig-drop {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+    width: 100%;
+    max-width: 720px;
+    min-height: 320px;
+    padding: 2.5rem 2rem;
+    border: 2px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(80% 60% at 50% 0%, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 70%),
+      var(--surface);
+    cursor: pointer;
+    text-align: center;
+    transition:
+      border-color 0.25s var(--ease-out),
+      background 0.25s var(--ease-out),
+      transform 0.25s var(--ease-out),
+      box-shadow 0.25s var(--ease-out);
+  }
+  .ig-drop:hover,
+  .ig-drop.drag {
+    border-color: var(--color-accent);
+    background:
+      radial-gradient(80% 60% at 50% 0%, color-mix(in srgb, var(--color-accent) 18%, transparent), transparent 70%),
+      color-mix(in srgb, var(--color-primary) 6%, var(--surface));
+    transform: translateY(-2px);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  }
+  .ig-drop-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    background: linear-gradient(135deg,
+      color-mix(in srgb, var(--color-primary) 30%, transparent),
+      color-mix(in srgb, var(--color-accent) 25%, transparent));
+    color: var(--color-accent);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 10px 30px color-mix(in srgb, var(--color-primary) 30%, transparent);
+    margin-bottom: 0.4rem;
+  }
+  .ig-drop-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+  .ig-drop-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--fg);
+    letter-spacing: -0.01em;
+  }
+  .ig-drop-hint {
+    font-size: 0.88rem;
+    color: var(--muted);
+    max-width: 42ch;
+    line-height: 1.55;
+  }
+  .ig-drop-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    justify-content: center;
+    margin-top: 0.75rem;
+  }
+  .ig-drop-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.28rem 0.7rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
+    color: color-mix(in srgb, var(--color-accent) 80%, var(--fg));
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.02em;
+  }
+  .ig-file-input {
+    display: none;
+  }
+
+  /* ============ Workspace：Canvas + 粘性 Inspector ============ */
+  .ig-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--ig-inspector-w);
+    gap: var(--ig-gap);
+    align-items: start;
+  }
+  .ig-workspace[hidden] {
+    display: none;
+  }
+
+  .ig-canvas {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ig-gap);
+  }
+
+  .ig-inspector {
+    position: sticky;
+    /* 吸顶位置：nav 底部 + 工具条自身高度 + 间距，滚下去后与工具条贴齐 */
+    top: calc(var(--ig-sticky-top) + var(--ig-toolbar-h) + 12px);
+    /* 与画布共用同一高度预算，保证两列等高、整页不冒出视口，
+       底部粘性动作栏也不会再压住本列内容 */
+    max-height: var(--ig-workspace-h);
+    overflow-y: auto;
+    display: grid;
+    gap: var(--ig-gap);
+    align-content: start;
+    min-width: 0;
+    padding-right: 2px; /* 避免 sticky 内滚动条压边 */
+  }
+
+  /* Inspector 通用卡片外观 */
+  .ig-panel-card,
+  .ig-control-card,
+  .ig-compare {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.8rem 0.9rem;
+  }
+  .ig-panel-card-title {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 0.7rem;
+    font-weight: 500;
+  }
+
+  /* 源文件信息 2×2 grid */
+  .ig-source-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.55rem 1rem;
+  }
+  .ig-source-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .ig-source-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .ig-source-value {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--fg);
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* 控件卡（内部结构由 ImageGovernance.ts 渲染） */
+  .ig-controls {
+    display: grid;
+    gap: var(--ig-gap);
+  }
+  .ig-control-card {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .ig-control-card h3 {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .ig-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+  .ig-input {
+    display: grid;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  /* 数字输入：边框/底色/内距由 daisyUI input input-sm 提供，这里只补数字排版 */
+  .ig-input input.ig-number {
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+  }
+  /* 滑块：daisyUI range range-sm range-primary 接管轨道与滑块，这里只补宽度 */
+  .ig-range {
+    width: 100%;
+  }
+  .ig-lock-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  /* 锁定按钮：daisyUI btn btn-sm 提供度量；.on 用强调色表达已锁定 */
+  .ig-lock {
+    font-size: 0.8rem;
+  }
+  .ig-lock.on {
+    color: var(--color-accent);
+    border-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  }
+  .ig-lock-icon {
+    display: inline-flex;
+  }
+  .ig-lock-icon svg {
+    width: 15px;
+    height: 15px;
+  }
+  .ig-ratio {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .ig-hint {
+    color: var(--muted);
+    font-size: 0.78rem;
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  /* 对比面板：原图 vs 结果，两列并排（内距沿用三张卡片共用的规则） */
+  .ig-compare {
+    display: grid;
+  }
+  .ig-compare-inner {
+    display: grid;
+    gap: 0.6rem;
+    grid-template-columns: 1fr 1fr;
+  }
+  .ig-panel {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.6rem;
+    display: grid;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+  .ig-panel-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .ig-preview {
+    /* 4:3 而非 1:1：照片多为横向，方形预览会在上下留大片空白，
+       也把检查器撑得过高 */
+    aspect-ratio: 4 / 3;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--bg) 60%, transparent);
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+  }
+  .ig-preview-img {
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+    object-fit: contain;
+  }
+  .ig-preview-empty {
+    color: var(--muted);
+    font-size: 0.72rem;
+    text-align: center;
+    padding: 0.4rem;
+    line-height: 1.4;
+  }
+  .ig-panel-meta,
+  .ig-panel-size {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ig-panel-size {
+    color: var(--fg);
+    font-weight: 500;
+  }
+  /* 下载链接：daisyUI btn btn-block btn-sm btn-outline 提供度量与外框，
+     这里只处理长文件名溢出（btn 是 inline-flex，需显式约束文本节点） */
+  .ig-download {
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-top: 0.15rem;
+  }
+  .ig-download:hover {
+    transform: translateY(-1px);
+  }
+
+  /* ============ 画布：裁剪 stage / 压缩 stage ============ */
+  .ig-crop-stage {
+    position: relative;
+    width: 100%;
+    background: var(--bg-elev);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    user-select: none;
+    touch-action: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-height: var(--ig-workspace-h);
+  }
+  .ig-stage-img {
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+    object-fit: contain;
+    -webkit-user-drag: none;
+  }
+  .ig-crop-overlay {
+    position: absolute;
+    border: 2px solid var(--color-accent);
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+    touch-action: none;
+  }
+  .ig-crop-grab {
+    position: absolute;
+    inset: 0;
+    cursor: move;
+  }
+  .ig-handle {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: var(--bg);
+    border: 2px solid var(--color-accent);
+    border-radius: 3px;
+    box-shadow: 0 0 0 8px transparent;
+  }
+  .ig-handle.tl { top: -7px; left: -7px; }
+  .ig-handle.t  { top: -7px; left: 50%; transform: translateX(-50%); }
+  .ig-handle.tr { top: -7px; right: -7px; }
+  .ig-handle.l  { top: 50%; left: -7px; transform: translateY(-50%); }
+  .ig-handle.r  { top: 50%; right: -7px; transform: translateY(-50%); }
+  .ig-handle.bl { bottom: -7px; left: -7px; }
+  .ig-handle.b  { bottom: -7px; left: 50%; transform: translateX(-50%); }
+  .ig-handle.br { bottom: -7px; right: -7px; }
+
+  .ig-crop-tag {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.65);
+    color: var(--fg);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    padding: 0.28rem 0.6rem;
+    border-radius: 999px;
+    pointer-events: none;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    letter-spacing: 0.02em;
+  }
+
+  /* ============ ActionBar：sticky 底部动作栏 ============ */
+  .ig-actionbar {
+    position: sticky;
+    bottom: 12px;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.6rem 0.6rem 0.6rem 1.1rem;
+    background: color-mix(in srgb, var(--bg-elev) 90%, transparent);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    min-height: var(--ig-actionbar-h);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+  }
+  .ig-actionbar[hidden] {
+    display: none;
+  }
+
+  .ig-summary {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .ig-summary-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+  .ig-summary-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+  }
+  .ig-summary-value {
+    color: var(--fg);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .ig-summary-sep {
+    color: var(--muted);
+    opacity: 0.5;
+  }
+  .ig-summary-hint {
+    color: var(--muted);
+    font-size: 0.78rem;
+  }
+  .ig-summary-delta {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .ig-summary-delta[data-dir='down'] {
+    color: #4ade80;
+    background: color-mix(in srgb, #22c55e 18%, transparent);
+    border: 1px solid color-mix(in srgb, #22c55e 40%, transparent);
+  }
+  .ig-summary-delta[data-dir='up'] {
+    color: #fbbf24;
+    background: color-mix(in srgb, #f59e0b 18%, transparent);
+    border: 1px solid color-mix(in srgb, #f59e0b 40%, transparent);
+  }
+
+  .ig-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+  .ig-actions-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  /* 主按钮：daisyUI btn btn-primary 提供度量/焦点/禁用态。
+     1. 去掉旧的紫→青渐变：渐变末端的青色太亮，深色文字在其上对比度不足 4.5:1；
+        改用主题里的 --color-primary-content（白）压平在品牌紫上，对比度 5.8:1 达标。
+     2. 旧样式用 border-radius:999px，与新的 14px 形状语言不符，这里交回 daisyUI。 */
+  .ig-primary {
+    min-width: 168px;
+    min-height: 42px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .ig-primary:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+  /* 旋转动画由 daisyUI 的 .loading 提供，不再自绘 keyframes */
+  .ig-spinner {
+    flex-shrink: 0;
+  }
+
+  /* ============ 响应式 ============ */
+  @media (max-width: 1100px) {
+    .ig-page {
+      --ig-inspector-w: 320px;
+    }
+  }
+
+  @media (max-width: 960px) {
+    .ig-workspace {
+      grid-template-columns: 1fr;
+    }
+    .ig-inspector {
+      position: static;
+      max-height: none;
+      overflow-y: visible;
+      /* 单列布局下检查器不再受高度预算约束，改为在文档流里展开，
+         此时底部动作栏是浮层，必须预留它的高度，否则会遮住最后一张卡片 */
+      padding-bottom: calc(var(--ig-actionbar-h) + 16px);
+    }
+    .ig-crop-stage {
+      max-height: 60vh;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .ig-page {
+      --ig-nav-offset: 72px;
+      --ig-sticky-top: 64px;
+      padding-left: 0.85rem;
+      padding-right: 0.85rem;
+    }
+    .ig-toolbar {
+      flex-wrap: wrap;
+      padding: 0.5rem 0.55rem;
+      gap: 0.5rem;
+    }
+    /* 窄屏：文件 chip 独占一行，模式 Tab 与「换一张」同排，避免三者互相挤扁 */
+    .ig-filechip-slot {
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+    .ig-filechip {
+      max-width: 100%;
+    }
+    .ig-filechip-name {
+      max-width: 18ch;
+    }
+    .ig-toolbar-sep {
+      display: none;
+    }
+    .ig-toolbar-spacer {
+      flex: 1 1 auto;
+    }
+    .ig-heading {
+      gap: 0.25rem;
+    }
+    .ig-title {
+      font-size: 1.5rem;
+    }
+    .ig-actionbar {
+      flex-direction: column;
+      align-items: stretch;
+      border-radius: var(--radius-lg);
+      padding: 0.75rem 1rem;
+      gap: 0.6rem;
+    }
+    .ig-summary-inner {
+      justify-content: center;
+    }
+    .ig-primary {
+      width: 100%;
+    }
+    .ig-compare-inner {
+      grid-template-columns: 1fr 1fr;
+    }
+    .ig-drop {
+      min-height: 260px;
+      padding: 2rem 1.25rem;
+    }
+    .ig-drop-title {
+      font-size: 1.05rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .ig-source-grid {
+      grid-template-columns: 1fr;
+    }
+    .ig-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* 减少动态偏好：关闭旋转/过渡 */
+  @media (prefers-reduced-motion: reduce) {
+    .ig-reset-icon:hover {
+      transform: none;
+    }
+    .ig-primary:hover:not(:disabled) {
+      transform: none;
+    }
+    .ig-drop:hover,
+    .ig-drop.drag {
+      transform: none;
+    }
+  }
+</style>

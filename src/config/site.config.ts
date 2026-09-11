@@ -22,12 +22,25 @@ const config: SiteConfig = {
     heading: '全部文章',
     intro: '这里汇集了我写下的文章，点击任意卡片阅读全文。',
   },
+  // 工具列表页（/tools）的可见文案
+  toolsIndex: {
+    title: '工具 · Astro 宣发首页',
+    description: '纯客户端、零上传：图片裁剪与压缩等浏览器内可完成的轻量工具。',
+    heading: '小工具',
+    intro: '所有处理均在你的浏览器中完成，文件不会上传到任何服务器。',
+    highlights: [
+      { title: '零上传', description: '所有文件全程留在浏览器，不经过任何服务器' },
+      { title: '无需注册', description: '打开即用，无账号、无广告、无追踪' },
+      { title: '开源可审计', description: '代码托管在 GitHub，欢迎审阅与贡献' },
+    ],
+  },
   // 全站浮动导航栏：品牌 + 链接（内部链接与外链混用）
   nav: {
     brand: 'yuk',
     links: [
       { label: '首页', href: '/' },
       { label: '文章', href: '/article' },
+      { label: '工具', href: '/tools' },
       { label: 'GitHub', href: 'https://github.com', external: true },
     ],
   },
@@ -43,6 +56,22 @@ const config: SiteConfig = {
         { label: '阅读文章', href: '/article', variant: 'primary' },
         { label: '查看展示', href: '#showcase', variant: 'ghost' },
         { label: 'Astro 官网', href: 'https://astro.build', variant: 'ghost', external: true },
+      ],
+    },
+    {
+      id: 'tools',
+      type: 'tool-grid',
+      heading: '试试这些工具',
+      intro: '点击进入使用，全部在浏览器内完成，不会上传你的文件。',
+      items: [
+        {
+          slug: 'image-governance',
+          title: '图片治理',
+          description: '裁剪到指定像素尺寸，或按目标体积压缩大小，输出图片不离开你的设备。',
+          icon: '🖼',
+          tags: ['图片', '纯前端'],
+          status: 'ready',
+        },
       ],
     },
     {
