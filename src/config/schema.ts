@@ -10,6 +10,8 @@ export interface SiteConfig {
   sections: Section[];
   /** 文章列表页可见文案（可选）；缺省时列表页回落到内置文案 */
   articleIndex?: ArticleIndexMeta;
+  /** 工具列表页可见文案（可选）；缺省时回落到内置文案 */
+  toolsIndex?: ToolIndexMeta;
   /** 全站浮动导航栏（可选）；提供时在所有页面顶部渲染 */
   nav?: NavConfig;
 }
@@ -41,6 +43,29 @@ export interface ArticleIndexMeta {
   intro?: string;
 }
 
+/** 工具列表页（/tools）的可见文案 */
+export interface ToolIndexMeta {
+  /** 列表页 <title> / og:title */
+  title: string;
+  /** 列表页 meta description */
+  description: string;
+  /** 页面大标题（H1） */
+  heading: string;
+  /** 副标题/引言（可选） */
+  intro?: string;
+  /**
+   * Bento 网格右侧亮点/隐私说明卡片（可选，建议 ≤ 3 项）。
+   * 缺省时组件回落到内置默认文案，保持“零上传 / 无需注册”等站点承诺。
+   */
+  highlights?: ToolHighlight[];
+}
+
+/** 工具列表页侧栏亮点条目 */
+export interface ToolHighlight {
+  title: string;
+  description: string;
+}
+
 /** 站点级元信息（用于 SEO 与 head） */
 export interface SiteMeta {
   title: string;
@@ -62,7 +87,7 @@ export interface ThemeConfig {
 
 // ============ 区块（可辨识联合） ============
 
-export type SectionType = 'hero' | 'feature' | 'showcase' | 'footer';
+export type SectionType = 'hero' | 'feature' | 'showcase' | 'tool-grid' | 'footer';
 
 /** 所有区块共有的基础字段 */
 export interface SectionBase {
@@ -97,6 +122,14 @@ export interface ShowcaseSection extends SectionBase {
   items: ShowcaseItem[];
 }
 
+/** 工具入口区块：首页顶部一组工具卡片，跳转 /tools/{slug} */
+export interface ToolGridSection extends SectionBase {
+  type: 'tool-grid';
+  heading: string;
+  intro?: string;
+  items: ToolItem[];
+}
+
 /** 页脚区块 */
 export interface FooterSection extends SectionBase {
   type: 'footer';
@@ -104,7 +137,7 @@ export interface FooterSection extends SectionBase {
   links: LinkItem[];
 }
 
-export type Section = HeroSection | FeatureSection | ShowcaseSection | FooterSection;
+export type Section = HeroSection | FeatureSection | ShowcaseSection | ToolGridSection | FooterSection;
 
 // ============ 复用子类型 ============
 
@@ -137,6 +170,22 @@ export interface LinkItem {
   external?: boolean;
 }
 
+/** 工具入口卡片项 */
+export interface ToolItem {
+  /** 路由 slug，例如 image-governance → /tools/image-governance */
+  slug: string;
+  title: string;
+  description: string;
+  /** 单字符图标（emoji 或字符），与站点现有 showcase 卡片风格保持一致 */
+  icon: string;
+  tags?: string[];
+  /** 工具状态：ready 默认；wip 时卡片置灰且不可点击 */
+  status?: 'ready' | 'wip';
+  /** 覆盖默认 /tools/{slug} 链接（极少使用，例如指向外链 demo） */
+  external?: boolean;
+  href?: string;
+}
+
 export type BgEffect = 'gradient-flow' | 'particles' | 'aurora' | 'none';
 
 // ============ 校验 ============
@@ -156,7 +205,7 @@ export class ConfigError extends Error {
  */
 export function validateConfig(raw: unknown): SiteConfig {
   const errors: string[] = [];
-  const KNOWN_TYPES: SectionType[] = ['hero', 'feature', 'showcase', 'footer'];
+  const KNOWN_TYPES: SectionType[] = ['hero', 'feature', 'showcase', 'tool-grid', 'footer'];
 
   if (raw === null || typeof raw !== 'object') {
     throw new ConfigError('配置必须是一个对象（site.config.ts 未正确导出）');
@@ -223,6 +272,38 @@ export function validateConfig(raw: unknown): SiteConfig {
       if (!isNonEmptyString(ai.title)) errors.push('articleIndex.title: 不能为空');
       if (!isNonEmptyString(ai.description)) errors.push('articleIndex.description: 不能为空');
       if (!isNonEmptyString(ai.heading)) errors.push('articleIndex.heading: 不能为空');
+    }
+  }
+
+  // 4b. 工具列表页元信息（可选，提供时校验必填字段）
+  if (cfg.toolsIndex !== undefined) {
+    const ti = cfg.toolsIndex as Record<string, unknown>;
+    if (ti === null || typeof ti !== 'object') {
+      errors.push('toolsIndex: 必须为对象');
+    } else {
+      if (!isNonEmptyString(ti.title)) errors.push('toolsIndex.title: 不能为空');
+      if (!isNonEmptyString(ti.description)) errors.push('toolsIndex.description: 不能为空');
+      if (!isNonEmptyString(ti.heading)) errors.push('toolsIndex.heading: 不能为空');
+      // highlights 可选：提供时须为数组，每项 title/description 非空
+      if (ti.highlights !== undefined) {
+        if (!Array.isArray(ti.highlights)) {
+          errors.push('toolsIndex.highlights: 必须为数组');
+        } else {
+          (ti.highlights as unknown[]).forEach((h, j) => {
+            const item = h as Record<string, unknown>;
+            if (item === null || typeof item !== 'object') {
+              errors.push(`toolsIndex.highlights[${j}]: 必须为对象`);
+              return;
+            }
+            if (!isNonEmptyString(item.title)) {
+              errors.push(`toolsIndex.highlights[${j}].title: 不能为空`);
+            }
+            if (!isNonEmptyString(item.description)) {
+              errors.push(`toolsIndex.highlights[${j}].description: 不能为空`);
+            }
+          });
+        }
+      }
     }
   }
 
@@ -294,6 +375,23 @@ function validateSectionByType(s: Record<string, unknown>, path: string): string
           const item = it as Record<string, unknown>;
           if (!isNonEmptyString(item.title)) errs.push(`${path}.items[${j}].title: 不能为空`);
           if (!isNonEmptyString(item.href)) errs.push(`${path}.items[${j}].href: 不能为空`);
+        });
+      }
+      break;
+    }
+    case 'tool-grid': {
+      if (!isNonEmptyString(s.heading)) errs.push(`${path}.heading: 不能为空`);
+      if (!Array.isArray(s.items) || (s.items as unknown[]).length < 1) {
+        errs.push(`${path}.items: 至少需要一项`);
+      } else {
+        (s.items as unknown[]).forEach((it, j) => {
+          const item = it as Record<string, unknown>;
+          if (!isNonEmptyString(item.slug)) errs.push(`${path}.items[${j}].slug: 不能为空`);
+          if (!isNonEmptyString(item.title)) errs.push(`${path}.items[${j}].title: 不能为空`);
+          if (!isNonEmptyString(item.description)) {
+            errs.push(`${path}.items[${j}].description: 不能为空`);
+          }
+          if (!isNonEmptyString(item.icon)) errs.push(`${path}.items[${j}].icon: 不能为空`);
         });
       }
       break;

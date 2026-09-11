@@ -1,0 +1,216 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ToolBento from '../../components/ToolBento.astro';
+import rawConfig from '../../config/site.config';
+import { validateConfig } from '../../config/schema';
+
+// 工具列表页（/tools）：Bento 网格 + 左对齐 hero + 隐私亮点侧栏。
+// 与首页 tool-grid 区块视觉分层：首页保留 ToolGridSection，此处专用 ToolBento。
+const config = validateConfig(rawConfig);
+
+const meta = config.toolsIndex ?? {
+  title: '工具',
+  description: '浏览器内可完成的小工具集合',
+  heading: '小工具',
+  intro: undefined as string | undefined,
+  highlights: undefined,
+};
+
+const base = config.theme.animationEnabled ? config.theme.animationBaseDelay : 0;
+
+// 复用首页 tool-grid 区块的 items 配置；如果配置里没找到，就渲染空占位
+const toolsSection = config.sections.find((s) => s.type === 'tool-grid');
+const items = toolsSection && toolsSection.type === 'tool-grid' ? toolsSection.items : [];
+
+const readyCount = items.filter((i) => i.status !== 'wip').length;
+const wipCount = items.length - readyCount;
+---
+
+<Layout
+  title={meta.title}
+  description={meta.description}
+  lang={config.site.lang}
+  author={config.site.author}
+  favicon={config.site.favicon}
+  ogImage={config.site.ogImage}
+  theme={config.theme}
+  nav={config.nav}
+>
+  <main class="tools-page">
+    <header class="tools-hero">
+      <div class="hero-text">
+        <p class="eyebrow" data-animate style="--animate-delay:0ms">
+          <span class="eyebrow-dot" aria-hidden="true"></span>
+          TOOLS · 工具集
+        </p>
+        <h1 data-animate style={`--animate-delay:${base}ms`}>{meta.heading}</h1>
+        {
+          meta.intro && (
+            <p class="intro" data-animate style={`--animate-delay:${base + 80}ms`}>
+              {meta.intro}
+            </p>
+          )
+        }
+      </div>
+      <div class="hero-meta" data-animate="fade" style={`--animate-delay:${base + 160}ms`}>
+        <span class="count-pill">
+          <span class="count-num">{readyCount}</span>
+          <span class="count-label">项已上线</span>
+        </span>
+        {
+          wipCount > 0 && (
+            <span class="count-pill muted">
+              <span class="count-num">{wipCount}</span>
+              <span class="count-label">项开发中</span>
+            </span>
+          )
+        }
+      </div>
+    </header>
+
+    {
+      items.length > 0 ? (
+        <section class="tools-bento" aria-label="工具卡片">
+          <ToolBento items={items} highlights={meta.highlights} delay={base + 200} />
+        </section>
+      ) : (
+        <p class="empty" data-animate style={`--animate-delay:${base}ms`}>
+          暂无工具，敬请期待。
+        </p>
+      )
+    }
+  </main>
+</Layout>
+
+<script>
+  import { initAnimations } from '../../scripts/animate';
+  initAnimations();
+</script>
+
+<style>
+  .tools-page {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 7rem 1.5rem 6rem;
+  }
+
+  /* Hero：左对齐文本 + 右上计数 pill */
+  .tools-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1.5rem 2rem;
+    align-items: end;
+    margin-bottom: 2.75rem;
+    padding-bottom: 1.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-text {
+    min-width: 0;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+  .eyebrow-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--color-accent) 75%, transparent);
+  }
+
+  .tools-hero h1 {
+    font-size: clamp(2.1rem, 5vw, 3.1rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin: 0 0 0.75rem;
+    background: linear-gradient(135deg, var(--fg) 20%, color-mix(in srgb, var(--color-accent) 65%, var(--fg)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .intro {
+    margin: 0;
+    max-width: 58ch;
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  /* 右侧计数 pill */
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+  }
+  .count-pill {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    padding: 0.5rem 0.95rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 32%, transparent);
+    font-family: var(--font-mono);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .count-pill.muted {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--muted);
+  }
+  .count-num {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-accent);
+  }
+  .count-pill.muted .count-num {
+    color: var(--fg);
+  }
+  .count-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .tools-bento {
+    margin-top: 0.5rem;
+  }
+
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 4rem 0;
+  }
+
+  /* 平板：hero 上下堆叠，计数 pill 靠左 */
+  @media (max-width: 720px) {
+    .tools-page {
+      padding: 6rem 1.25rem 4rem;
+    }
+    .tools-hero {
+      grid-template-columns: 1fr;
+      align-items: start;
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .hero-meta {
+      justify-content: flex-start;
+    }
+  }
+</style>

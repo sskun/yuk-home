@@ -1,0 +1,211 @@
+---
+import type { ToolGridSection } from '../config/schema';
+
+// 工具入口区块：复用 ShowcaseSection 的视觉语言（hover lift + 渐变占位 + tag pill）。
+// 与 showcase 的区别：卡片中心展示 icon 而非 thumbnail；状态 wip 时整卡置灰且不可点击。
+interface Props {
+  data: ToolGridSection;
+  delay: number;
+}
+const { data, delay } = Astro.props;
+
+// wip 工具的链接回落到 '#'，阻止导航；ready 工具用配置里的 href 覆盖或默认 /tools/{slug}
+function resolveHref(slug: string, override?: string): string {
+  return override ?? `/tools/${slug}`;
+}
+---
+
+<section id={data.id} class="tools">
+  <div class="inner">
+    <h2 class="heading" data-animate style={`--animate-delay:${delay}ms`}>{data.heading}</h2>
+    {
+      data.intro && (
+        <p class="intro" data-animate style={`--animate-delay:${delay + 80}ms`}>{data.intro}</p>
+      )
+    }
+    <div class="grid">
+      {
+        data.items.map((item, i) => {
+          const wip = item.status === 'wip';
+          const href = wip ? '#' : resolveHref(item.slug, item.href);
+          const external = !wip && item.external === true;
+          const cardTag = wip ? 'div' : 'a';
+          const Card = cardTag as 'div' | 'a';
+          return (
+            <Card
+              class:list={['tool-card', { wip }]}
+              {...(Card === 'a'
+                ? {
+                    href,
+                    target: external ? '_blank' : undefined,
+                    rel: external ? 'noopener noreferrer' : undefined,
+                    'aria-disabled': wip ? 'true' : undefined,
+                  }
+                : { 'aria-disabled': 'true' })}
+              data-animate="scale"
+              style={`--animate-delay:${delay + 140 + i * 90}ms`}
+            >
+              <div class="thumb-wrap thumb-placeholder" aria-hidden="true">
+                <span class="glyph">{item.icon}</span>
+              </div>
+              <div class="body">
+                <h3 class="title">
+                  {item.title}
+                  {
+                    wip && (
+                      <span class="badge" aria-label="开发中">
+                        WIP
+                      </span>
+                    )
+                  }
+                </h3>
+                <p class="desc">{item.description}</p>
+                {
+                  item.tags && (
+                    <ul class="tags">
+                      {item.tags.map((t) => (
+                        <li class="tag">{t}</li>
+                      ))}
+                    </ul>
+                  )
+                }
+              </div>
+            </Card>
+          );
+        })
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .tools {
+    padding: 6rem 2rem;
+  }
+
+  .inner {
+    max-width: var(--max-width);
+    margin: 0 auto;
+  }
+
+  .heading {
+    font-size: clamp(1.8rem, 4vw, 2.75rem);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    text-align: center;
+    margin: 0 0 0.75rem;
+  }
+
+  .intro {
+    margin: 0 auto 3rem;
+    max-width: 40rem;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .tool-card {
+    display: block;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition:
+      transform 0.3s var(--ease-out),
+      border-color 0.3s var(--ease-out),
+      box-shadow 0.3s var(--ease-out);
+  }
+
+  .tool-card:hover {
+    transform: translateY(-6px);
+    border-color: color-mix(in srgb, var(--color-primary) 55%, transparent);
+    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.4);
+  }
+
+  .tool-card.wip {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+  .tool-card.wip:hover {
+    transform: none;
+    border-color: var(--border);
+    box-shadow: none;
+  }
+
+  .thumb-wrap {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+  }
+
+  .thumb-placeholder {
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(120% 120% at 0% 0%, color-mix(in srgb, var(--color-primary) 40%, transparent), transparent 60%),
+      radial-gradient(120% 120% at 100% 100%, color-mix(in srgb, var(--color-accent) 35%, transparent), transparent 60%),
+      var(--bg-elev);
+  }
+
+  .glyph {
+    font-size: 3.2rem;
+    line-height: 1;
+    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.35));
+  }
+
+  .body {
+    padding: 1.5rem;
+  }
+
+  .title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin: 0 0 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+    color: var(--color-accent);
+    letter-spacing: 0.04em;
+  }
+
+  .desc {
+    margin: 0 0 1rem;
+    color: var(--muted);
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tag {
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    padding: 0.22rem 0.6rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-accent) 16%, transparent);
+    color: var(--color-accent);
+  }
+</style>

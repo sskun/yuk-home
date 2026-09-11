@@ -3,6 +3,7 @@ import type { Section, ThemeConfig } from '../config/schema';
 import HeroSection from './HeroSection.astro';
 import FeatureSection from './FeatureSection.astro';
 import ShowcaseSection from './ShowcaseSection.astro';
+import ToolGridSection from './ToolGridSection.astro';
 import FooterSection from './FooterSection.astro';
 
 // 区块分发器：按 section.type 分发到对应组件；未知类型安全跳过并告警。
@@ -25,6 +26,8 @@ const delay = animateOn ? index * theme.animationBaseDelay : 0;
     <FeatureSection data={section} delay={delay} />
   ) : section.type === 'showcase' ? (
     <ShowcaseSection data={section} delay={delay} />
+  ) : section.type === 'tool-grid' ? (
+    <ToolGridSection data={section} delay={delay} />
   ) : section.type === 'footer' ? (
     <FooterSection data={section} delay={delay} />
   ) : (
