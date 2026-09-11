@@ -153,10 +153,134 @@ describe('validateConfig - nav（全站导航栏）', () => {
 
   it('nav.links 项缺少 label/href 应报错并含索引路径', () => {
     const cfg = makeValidConfig();
-    // @ts-expect-error 故意构造非法链接项
     cfg.nav = { brand: 'yuk', links: [{ label: '', href: '' }] };
     expect(() => validateConfig(cfg)).toThrow(/nav\.links\[0\]\.label/);
     expect(() => validateConfig(cfg)).toThrow(/nav\.links\[0\]\.href/);
+  });
+});
+
+describe('validateConfig - toolsIndex（工具列表页元信息）', () => {
+  it('不提供 toolsIndex 时应通过（可选字段）', () => {
+    const cfg = makeValidConfig();
+    expect(validateConfig(cfg)).toBe(cfg);
+  });
+
+  it('提供合法 toolsIndex 时应通过', () => {
+    const cfg = makeValidConfig();
+    cfg.toolsIndex = { title: '工具', description: '纯前端工具集', heading: '小工具' };
+    expect(validateConfig(cfg)).toBe(cfg);
+  });
+
+  it.each(['title', 'description', 'heading'] as const)(
+    'toolsIndex.%s 为空应报错且含字段路径',
+    (field) => {
+      const cfg = makeValidConfig();
+      cfg.toolsIndex = { title: '工具', description: '纯前端工具集', heading: '小工具' };
+      cfg.toolsIndex[field] = '';
+      expect(() => validateConfig(cfg)).toThrow(new RegExp(`toolsIndex\\.${field}`));
+    },
+  );
+
+  it('toolsIndex.highlights 合法时应通过', () => {
+    const cfg = makeValidConfig();
+    cfg.toolsIndex = {
+      title: '工具',
+      description: '纯前端工具集',
+      heading: '小工具',
+      highlights: [
+        { title: '零上传', description: '文件不离开浏览器' },
+        { title: '无需注册', description: '打开即用' },
+      ],
+    };
+    expect(validateConfig(cfg)).toBe(cfg);
+  });
+
+  it('toolsIndex.highlights 非数组应报错', () => {
+    const cfg = makeValidConfig();
+    cfg.toolsIndex = {
+      title: '工具',
+      description: '纯前端工具集',
+      heading: '小工具',
+      // @ts-expect-error 故意注入非法类型
+      highlights: 'x',
+    };
+    expect(() => validateConfig(cfg)).toThrow(/toolsIndex\.highlights/);
+  });
+
+  it.each(['title', 'description'] as const)(
+    'toolsIndex.highlights[0].%s 为空应报错且含索引路径',
+    (field) => {
+      const cfg = makeValidConfig();
+      cfg.toolsIndex = {
+        title: '工具',
+        description: '纯前端工具集',
+        heading: '小工具',
+        highlights: [{ title: '零上传', description: '文件不离开浏览器' }],
+      };
+      cfg.toolsIndex.highlights![0][field] = '';
+      expect(() => validateConfig(cfg)).toThrow(
+        new RegExp(`toolsIndex\\.highlights\\[0\\]\\.${field}`),
+      );
+    },
+  );
+});
+
+describe('validateConfig - tool-grid 区块', () => {
+  const validToolItem = {
+    slug: 'image-governance',
+    title: '图片治理',
+    description: '裁剪 / 压缩',
+    icon: '🖼',
+  };
+
+  it('合法 tool-grid 区块应通过', () => {
+    const cfg = makeValidConfig();
+    cfg.sections.splice(1, 0, {
+      id: 'tools',
+      type: 'tool-grid',
+      heading: '工具',
+      items: [validToolItem],
+    });
+    expect(validateConfig(cfg)).toBe(cfg);
+  });
+
+  it('tool-grid 缺 heading 应报错', () => {
+    const cfg = makeValidConfig();
+    cfg.sections.splice(1, 0, {
+      id: 'tools',
+      type: 'tool-grid',
+      heading: '',
+      items: [validToolItem],
+    });
+    // splice(1, 0) 后 tool-grid 位于 sections[1]
+    expect(() => validateConfig(cfg)).toThrow(/sections\[1\]\.heading/);
+  });
+
+  it.each(['slug', 'title', 'description', 'icon'] as const)(
+    'tool-grid.items[*].%s 为空应报错且含索引路径',
+    (field) => {
+      const cfg = makeValidConfig();
+      cfg.sections.splice(1, 0, {
+        id: 'tools',
+        type: 'tool-grid',
+        heading: '工具',
+        items: [{ ...validToolItem, [field]: '' }],
+      });
+      expect(() => validateConfig(cfg)).toThrow(
+        new RegExp(`sections\\[1\\]\\.items\\[0\\]\\.${field}`),
+      );
+    },
+  );
+
+  it('tool-grid.items 为空数组应报错', () => {
+    const cfg = makeValidConfig();
+    cfg.sections.splice(1, 0, {
+      id: 'tools',
+      type: 'tool-grid',
+      heading: '工具',
+      items: [],
+    });
+    expect(() => validateConfig(cfg)).toThrow(/至少需要一项/);
   });
 });
 

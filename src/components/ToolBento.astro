@@ -1,0 +1,497 @@
+---
+import type { ToolItem, ToolHighlight } from '../config/schema';
+
+// 工具列表页专用 Bento 网格：
+// - 第 1 个 ready 工具做 featured（span 4，横向 icon + 内容）
+// - 右侧 side 面板（span 2）呈现站点承诺/亮点
+// - 其余 ready 工具做常规 cell（默认 span 2；数量为 1/2 时会自动扩展 span 以填满行）
+// - wip 工具排在最后，dashed 边框 + 置灰
+// 首页仍使用 ToolGridSection.astro，两者不共享样式，避免相互影响。
+interface Props {
+  items: ToolItem[];
+  highlights?: ToolHighlight[];
+  delay: number;
+}
+const { items, highlights, delay } = Astro.props;
+
+const DEFAULT_HIGHLIGHTS: ToolHighlight[] = [
+  { title: '零上传', description: '所有文件全程留在浏览器，不经过任何服务器' },
+  { title: '无需注册', description: '打开即用，无账号、无广告、无追踪' },
+  { title: '开源可审计', description: '代码托管在 GitHub，欢迎审阅与贡献' },
+];
+
+const hi = highlights && highlights.length > 0 ? highlights : DEFAULT_HIGHLIGHTS;
+const ready = items.filter((i) => i.status !== 'wip');
+const wip = items.filter((i) => i.status === 'wip');
+const featured = ready[0];
+const rest = ready.slice(1);
+
+// rest 数量决定其 span，让最后一行尽量填满 6 列
+const restSpanClass =
+  rest.length === 1 ? 'span-6' : rest.length === 2 ? 'span-3' : 'span-2';
+
+function resolveHref(item: ToolItem): string {
+  return item.href ?? `/tools/${item.slug}`;
+}
+
+function isExternal(item: ToolItem): boolean {
+  return item.external === true;
+}
+---
+
+<div class="bento">
+  {
+    featured && (
+      <a
+        class="cell featured"
+        href={resolveHref(featured)}
+        target={isExternal(featured) ? '_blank' : undefined}
+        rel={isExternal(featured) ? 'noopener noreferrer' : undefined}
+        data-animate="scale"
+        style={`--animate-delay:${delay}ms`}
+      >
+        <div class="icon-block" aria-hidden="true">
+          <span class="glyph">{featured.icon}</span>
+        </div>
+        <div class="content">
+          <div class="row">
+            <span class="pill ready">READY</span>
+            {featured.tags && (
+              <ul class="tags">
+                {featured.tags.map((t) => (
+                  <li class="tag">{t}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <h3 class="title">{featured.title}</h3>
+          <p class="desc">{featured.description}</p>
+          <span class="cta">
+            打开工具
+            <svg class="arrow" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <path
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M5 12h14M13 6l6 6-6 6"
+              />
+            </svg>
+          </span>
+        </div>
+        <span class="glow" aria-hidden="true"></span>
+      </a>
+    )
+  }
+
+  <aside
+    class="cell side"
+    aria-label="本站工具的隐私与使用承诺"
+    data-animate="scale"
+    style={`--animate-delay:${delay + 80}ms`}
+  >
+    <h3 class="side-title">为什么选择本站工具</h3>
+    <ul class="highlights">
+      {
+        hi.map((h) => (
+          <li class="highlight">
+            <span class="dot" aria-hidden="true" />
+            <div class="hl-body">
+              <strong>{h.title}</strong>
+              <p>{h.description}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </aside>
+
+  {
+    rest.map((item, i) => (
+      <a
+        class:list={['cell', 'regular', restSpanClass]}
+        href={resolveHref(item)}
+        target={isExternal(item) ? '_blank' : undefined}
+        rel={isExternal(item) ? 'noopener noreferrer' : undefined}
+        data-animate="scale"
+        style={`--animate-delay:${delay + 160 + i * 80}ms`}
+      >
+        <div class="icon-sm" aria-hidden="true">
+          <span class="glyph">{item.icon}</span>
+        </div>
+        <h3 class="title">{item.title}</h3>
+        <p class="desc">{item.description}</p>
+        {item.tags && (
+          <ul class="tags">
+            {item.tags.map((t) => (
+              <li class="tag">{t}</li>
+            ))}
+          </ul>
+        )}
+        <span class="cta">
+          打开工具
+          <svg class="arrow" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <path
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M5 12h14M13 6l6 6-6 6"
+            />
+          </svg>
+        </span>
+      </a>
+    ))
+  }
+
+  {
+    wip.map((item, i) => (
+      <div
+        class="cell wip span-2"
+        aria-disabled="true"
+        data-animate="scale"
+        style={`--animate-delay:${delay + 240 + i * 80}ms`}
+      >
+        <div class="icon-sm" aria-hidden="true">
+          <span class="glyph">{item.icon}</span>
+        </div>
+        <div class="row">
+          <span class="pill wip-pill">WIP</span>
+        </div>
+        <h3 class="title">{item.title}</h3>
+        <p class="desc">{item.description}</p>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .bento {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-auto-flow: row dense;
+  }
+
+  /* 单元格通用样式 */
+  .cell {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+    isolation: isolate;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition:
+      transform 0.3s var(--ease-out),
+      border-color 0.3s var(--ease-out),
+      box-shadow 0.3s var(--ease-out);
+  }
+
+  a.cell {
+    cursor: pointer;
+  }
+  a.cell:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--color-primary) 55%, transparent);
+    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.4);
+  }
+  a.cell:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+
+  /* span 变体（受媒体查询覆盖） */
+  .span-2 { grid-column: span 2; }
+  .span-3 { grid-column: span 3; }
+  .span-6 { grid-column: span 6; }
+
+  /* Featured：横跨 4 列，横向布局 */
+  .featured {
+    grid-column: span 4;
+    flex-direction: row;
+    align-items: center;
+    gap: 1.75rem;
+    min-height: 260px;
+    padding: 1.75rem;
+  }
+  .featured .content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+  }
+  .featured .title {
+    font-size: clamp(1.35rem, 2.4vw, 1.65rem);
+    margin-bottom: 0.6rem;
+  }
+  .featured .desc {
+    font-size: 0.95rem;
+    max-width: 46ch;
+  }
+  /* 右上角装饰光晕，增加视觉层次 */
+  .featured .glow {
+    position: absolute;
+    inset: -40% -20% auto auto;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(
+      circle at center,
+      color-mix(in srgb, var(--color-accent) 22%, transparent),
+      transparent 65%
+    );
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* Side：右侧亮点面板，跨 2 列 */
+  .side {
+    grid-column: span 2;
+    padding: 1.5rem 1.4rem;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 70%),
+      var(--surface);
+    gap: 1rem;
+  }
+  .side-title {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0;
+    font-weight: 500;
+  }
+  .highlights {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.9rem;
+  }
+  .highlight {
+    display: grid;
+    grid-template-columns: 10px 1fr;
+    gap: 0.75rem;
+    align-items: start;
+  }
+  .highlight .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    margin-top: 8px;
+    box-shadow: 0 0 10px color-mix(in srgb, var(--color-accent) 65%, transparent);
+  }
+  .hl-body strong {
+    display: block;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--fg);
+    margin-bottom: 2px;
+  }
+  .hl-body p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  /* Icon 容器：featured 用大块，其它用小方块 */
+  .icon-block {
+    width: 128px;
+    height: 128px;
+    border-radius: 28px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    background:
+      radial-gradient(120% 120% at 0% 0%, color-mix(in srgb, var(--color-primary) 48%, transparent), transparent 65%),
+      radial-gradient(120% 120% at 100% 100%, color-mix(in srgb, var(--color-accent) 42%, transparent), transparent 65%),
+      var(--bg-elev);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 10px 28px rgba(0, 0, 0, 0.4);
+  }
+  .icon-block .glyph {
+    font-size: 3.6rem;
+    line-height: 1;
+    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45));
+  }
+  .icon-sm {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 0.9rem;
+    background:
+      radial-gradient(120% 120% at 0% 0%, color-mix(in srgb, var(--color-primary) 38%, transparent), transparent 65%),
+      var(--bg-elev);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .icon-sm .glyph {
+    font-size: 1.65rem;
+    line-height: 1;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+  }
+
+  /* 文本层级 */
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.01em;
+    color: var(--fg);
+  }
+  .desc {
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    margin: 0 0 1rem;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0.22rem 0.6rem;
+    border-radius: 999px;
+  }
+  .pill.ready {
+    background: color-mix(in srgb, var(--color-accent) 22%, transparent);
+    color: var(--color-accent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 45%, transparent);
+  }
+  .pill.wip-pill {
+    background: color-mix(in srgb, #f59e0b 20%, transparent);
+    color: #fbbf24;
+    border: 1px solid color-mix(in srgb, #f59e0b 40%, transparent);
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .tag {
+    font-size: 0.68rem;
+    font-family: var(--font-mono);
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+    color: var(--color-accent);
+    letter-spacing: 0.02em;
+  }
+
+  /* CTA：底部对齐，hover 时箭头右移 */
+  .cta {
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--color-accent);
+    opacity: 0.85;
+    transition: opacity 0.25s var(--ease-out);
+  }
+  a.cell:hover .cta {
+    opacity: 1;
+  }
+  .cta .arrow {
+    transition: transform 0.25s var(--ease-out);
+  }
+  a.cell:hover .cta .arrow {
+    transform: translateX(4px);
+  }
+
+  /* WIP：dashed + 置灰，不可交互 */
+  .cell.wip {
+    border-style: dashed;
+    border-color: var(--border-strong);
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: color-mix(in srgb, var(--surface) 60%, transparent);
+  }
+
+  /* 平板：2 列布局 */
+  @media (max-width: 960px) {
+    .bento {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .featured,
+    .side,
+    .span-2,
+    .span-3,
+    .span-6 {
+      grid-column: span 2;
+    }
+    .featured {
+      flex-direction: row;
+      min-height: 220px;
+    }
+  }
+
+  /* 手机：单列 */
+  @media (max-width: 600px) {
+    .bento {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    .featured,
+    .side,
+    .span-2,
+    .span-3,
+    .span-6 {
+      grid-column: span 1;
+    }
+    .featured {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1.25rem;
+      padding: 1.5rem;
+      min-height: 0;
+    }
+    .icon-block {
+      width: 96px;
+      height: 96px;
+      border-radius: 22px;
+    }
+    .icon-block .glyph {
+      font-size: 2.6rem;
+    }
+  }
+
+  /* 减少动态：去掉过渡 */
+  @media (prefers-reduced-motion: reduce) {
+    .cell {
+      transition: none;
+    }
+    a.cell:hover {
+      transform: none;
+    }
+  }
+</style>

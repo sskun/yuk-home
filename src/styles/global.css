@@ -1,0 +1,78 @@
+/* Tailwind v4 + daisyUI 接入层。
+ *
+ * 刻意不引 preflight：全站页面都依赖 Layout.astro 手写的 :root 令牌与基础排版，
+ * preflight 的全局重置（margin/heading/list/button 归一化）会造成大面积视觉回归。
+ * 这里只取 theme 层（Tailwind 设计令牌）与 utilities 层（工具类按需生成）。
+ * 详见 docs/changes/2026-09-11-image-governance-redesign.md 第 5.2 节。
+ */
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/* 内置主题全部关闭，只保留下面自定义的 yukhome。
+ *
+ * include：只生成工具页真正用到的那几个组件。这一步是必需的，不是体积优化 ——
+ * daisyUI 默认把全部组件 CSS 全局输出，而它的类名非常通用，会和站点自建样式撞车。
+ * 实测到的真实冲突（改动前，daisyUI 全量输出时）：
+ *   FeatureSection 的 .card  未声明 display → 吃到 daisyUI 的 display:flex
+ *   FooterSection  的 .footer 未声明 display → 吃到 display:grid
+ *   ToolGridSection 的 .badge 未声明 display → 吃到 display:inline-flex
+ * 三者叠加导致首页整体高度少了 6px。
+ * 站点已占用 .card / .footer / .hero / .badge / .link，因此这些组件永远不要 include。
+ * 新增组件前，先用 grep 确认站点没有同名选择器。 */
+@plugin "daisyui" {
+  themes: false;
+  include: button, tab, input, range, alert, loading;
+}
+
+/* daisyUI 主题：命名 yukhome，刻意不设 default —— 仅靠根元素 data-theme="yukhome"
+ * 在工具页激活，避免 daisyUI 主题变量外溢到首页 / 工具列表 / 文章页。
+ *
+ * 品牌色引用 --site-primary / --site-accent（由 Layout.astro 从 site.config 内联写入）。
+ * 不能直接写 var(--color-primary)：那是 daisyUI 自己的变量名，会构成自引用导致变量失效。
+ */
+@plugin "daisyui/theme" {
+  name: "yukhome";
+  default: false;
+  prefersdark: false;
+  color-scheme: dark;
+
+  /* 底色沿用站点深色 OLED 分层：base-100=--bg-elev，base-300=--surface-2 的实色化 */
+  --color-base-100: #10101c;
+  --color-base-200: #16162a;
+  --color-base-300: #1d1d33;
+  --color-base-content: #ececf3;
+
+  --color-primary: var(--site-primary);
+  /* 白字在品牌紫 #7c3aed 上对比度 5.8:1，达 WCAG AA；
+     旧的深色文字方案（#0a0a12）在渐变青色端只有约 3.3:1，不达标 */
+  --color-primary-content: #ffffff;
+  --color-secondary: var(--site-accent);
+  --color-secondary-content: #0a0a12;
+  --color-accent: var(--site-accent);
+  --color-accent-content: #0a0a12;
+  --color-neutral: #1d1d33;
+  --color-neutral-content: #ececf3;
+
+  --color-info: #22d3ee;
+  --color-info-content: #0a0a12;
+  --color-success: #4ade80;
+  --color-success-content: #0a0a12;
+  --color-warning: #fbbf24;
+  --color-warning-content: #0a0a12;
+  --color-error: #ef4444;
+  --color-error-content: #ffffff;
+
+  /* 圆角与站点 --radius(14px) / --radius-lg(20px) 对齐，保证组件形状语言统一 */
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.875rem;
+
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  /* depth 关闭：站点是扁平玻璃拟态，不要 daisyUI 的立体描边阴影 */
+  --depth: 0;
+  --noise: 0;
+}
