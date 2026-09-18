@@ -10,8 +10,8 @@ const config: SiteConfig = {
     author: 'yukun',
   },
   theme: {
-    primaryColor: '#7c3aed',
-    accentColor: '#22d3ee',
+    primaryColor: '#0f172a',
+    accentColor: '#3b82f6',
     animationEnabled: true,
     animationBaseDelay: 120,
   },
