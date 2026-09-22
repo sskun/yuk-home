@@ -1,7 +1,6 @@
 ---
 import type { FeatureSection } from '../config/schema';
 
-// 特性介绍区块：区块标题 + 引言 + 特性卡片网格。
 interface Props {
   data: FeatureSection;
   delay: number;
@@ -11,110 +10,106 @@ const { data, delay } = Astro.props;
 
 <section id={data.id} class="feature">
   <div class="inner">
-    <h2 class="heading" data-animate style={`--animate-delay:${delay}ms`}>{data.heading}</h2>
-    {data.intro && <p class="intro" data-animate style={`--animate-delay:${delay + 100}ms`}>{data.intro}</p>}
-    <div class="grid">
-      {
-        data.features.map((f, i) => (
-          <article class="card" data-animate="scale" style={`--animate-delay:${delay + 150 + i * 80}ms`}>
-            {f.icon && <div class="icon">{f.icon}</div>}
+    <div class="header" data-animate style={`--animate-delay:${delay}ms`}>
+      <h2 class="heading">{data.heading}</h2>
+      {data.intro && <p class="intro">{data.intro}</p>}
+    </div>
+
+    <div class="grid" data-animate="scale" style={`--animate-delay:${delay + 80}ms`}>
+      {data.features.map((f) => (
+        <div class="card">
+          {f.icon && <span class="icon" aria-hidden="true">{f.icon}</span>}
+          <div class="card-body">
             <h3 class="card-title">{f.title}</h3>
             <p class="card-desc">{f.description}</p>
-          </article>
-        ))
-      }
+          </div>
+        </div>
+      ))}
     </div>
   </div>
 </section>
 
 <style>
   .feature {
-    padding: 6rem 2rem;
+    padding: 5rem 1.5rem;
+    border-top: 1px solid var(--border);
   }
 
   .inner {
     max-width: var(--max-width);
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  .header {
+    display: flex;
+    align-items: baseline;
+    gap: 1.25rem;
+    flex-wrap: wrap;
   }
 
   .heading {
-    font-size: clamp(1.8rem, 4vw, 2.75rem);
+    margin: 0;
+    font-size: 1.1rem;
     font-weight: 700;
-    letter-spacing: -0.015em;
-    text-align: center;
-    margin: 0 0 0.75rem;
+    color: var(--fg);
+    white-space: nowrap;
   }
 
   .intro {
-    text-align: center;
+    margin: 0;
+    font-size: 0.9rem;
     color: var(--muted);
-    margin: 0 auto 3rem;
-    max-width: 40rem;
   }
 
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 1.25rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
   }
 
   .card {
-    position: relative;
-    padding: 1.85rem;
-    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem 1.4rem;
     background: var(--surface);
     border: 1px solid var(--border);
-    backdrop-filter: blur(10px);
-    overflow: hidden;
-    transition:
-      transform 0.3s var(--ease-out),
-      border-color 0.3s var(--ease-out),
-      background 0.3s var(--ease-out);
+    border-radius: var(--radius);
+    transition: border-color 0.2s, background 0.2s;
   }
-
-  /* 悬停时顶部浮现一条渐变高光，强化"可交互"信号，不引起布局位移 */
-  .card::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
-    opacity: 0;
-    transition: opacity 0.3s var(--ease-out);
-  }
-
   .card:hover {
-    transform: translateY(-6px);
-    border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
-    background: var(--surface-2);
-  }
-
-  .card:hover::before {
-    opacity: 1;
+    border-color: color-mix(in srgb, var(--color-accent) 35%, var(--border));
+    background: color-mix(in srgb, var(--color-accent) 3%, var(--surface));
   }
 
   .icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 3rem;
-    height: 3rem;
-    margin-bottom: 1rem;
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     line-height: 1;
-    border-radius: 12px;
-    background: color-mix(in srgb, var(--color-primary) 16%, transparent);
-    border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+    flex-shrink: 0;
+    margin-top: 1px;
   }
 
+  .card-body { min-width: 0; }
+
   .card-title {
-    margin: 0 0 0.5rem;
-    font-size: 1.2rem;
+    margin: 0 0 0.4rem;
+    font-size: 0.95rem;
     font-weight: 600;
+    color: var(--fg);
   }
 
   .card-desc {
     margin: 0;
+    font-size: 0.82rem;
     color: var(--muted);
+    line-height: 1.55;
+    font-family: var(--font-mono);
+  }
+
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr; }
   }
 </style>

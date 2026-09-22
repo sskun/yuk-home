@@ -1,0 +1,245 @@
+---
+import type { ToolItem } from '../config/schema';
+
+// 工具列表页专用组件：简单竖向列表，每行一个工具。
+// ready 工具可点击，wip 工具置灰 + "规划中" 标签。
+interface Props {
+  items: ToolItem[];
+  delay: number;
+}
+const { items, delay } = Astro.props;
+
+const ready = items.filter((i) => i.status !== 'wip');
+const wip = items.filter((i) => i.status === 'wip');
+const all = [...ready, ...wip];
+
+function resolveHref(item: ToolItem): string {
+  return item.href ?? `/tools/${item.slug}`;
+}
+
+function isExternal(item: ToolItem): boolean {
+  return item.external === true;
+}
+---
+
+<ul class="tool-list" role="list">
+  {
+    all.map((item, i) => {
+      const isWip = item.status === 'wip';
+      const animDelay = delay + i * 60;
+
+      return isWip ? (
+        <li
+          class="tool-item wip"
+          aria-disabled="true"
+          data-animate
+          style={`--animate-delay:${animDelay}ms`}
+        >
+          <span class="tool-icon" aria-hidden="true">{item.icon}</span>
+          <div class="tool-body">
+            <div class="tool-header">
+              <span class="tool-name">{item.title}</span>
+              <span class="badge wip-badge">规划中</span>
+            </div>
+            <p class="tool-desc">{item.description}</p>
+          </div>
+        </li>
+      ) : (
+        <li
+          class="tool-item"
+          data-animate
+          style={`--animate-delay:${animDelay}ms`}
+        >
+          <a
+            class="tool-link"
+            href={resolveHref(item)}
+            target={isExternal(item) ? '_blank' : undefined}
+            rel={isExternal(item) ? 'noopener noreferrer' : undefined}
+          >
+            <span class="tool-icon" aria-hidden="true">{item.icon}</span>
+            <div class="tool-body">
+              <div class="tool-header">
+                <span class="tool-name">{item.title}</span>
+                {item.tags && item.tags.length > 0 && (
+                  <ul class="tag-list" aria-label="标签">
+                    {item.tags.map((t) => (
+                      <li class="tag">{t}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <p class="tool-desc">{item.description}</p>
+            </div>
+            <svg
+              class="arrow"
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              aria-hidden="true"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </a>
+        </li>
+      );
+    })
+  }
+</ul>
+
+<style>
+  .tool-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    /* 列表项之间用分割线 */
+    border-top: 1px solid var(--border);
+  }
+
+  /* ---- 每行通用 ---- */
+  .tool-item {
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ---- 可点击行 ---- */
+  .tool-link {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.25rem 0.5rem;
+    text-decoration: none;
+    color: inherit;
+    border-radius: var(--radius);
+    transition: background 0.18s var(--ease-out), padding-left 0.18s var(--ease-out);
+    outline-offset: 4px;
+  }
+
+  .tool-link:hover {
+    background: var(--surface-2);
+    padding-left: 1rem;
+  }
+
+  .tool-link:hover .arrow {
+    color: var(--color-accent);
+    transform: translateX(3px);
+  }
+
+  /* ---- WIP 行（不可点击） ---- */
+  .tool-item.wip {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.25rem 0.5rem;
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  /* ---- icon ---- */
+  .tool-icon {
+    font-size: 1.75rem;
+    line-height: 1;
+    flex-shrink: 0;
+    width: 2.5rem;
+    text-align: center;
+  }
+
+  /* ---- 文字区 ---- */
+  .tool-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .tool-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .tool-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--fg);
+    white-space: nowrap;
+  }
+
+  .tool-desc {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  /* ---- 标签 ---- */
+  .tag-list {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .tag {
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    padding: 0.2em 0.55em;
+    border-radius: 4px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--muted-strong);
+    white-space: nowrap;
+  }
+
+  .badge {
+    font-size: 0.7rem;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    padding: 0.2em 0.6em;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .wip-badge {
+    background: color-mix(in srgb, var(--muted) 12%, transparent);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  /* ---- 跳转箭头 ---- */
+  .arrow {
+    flex-shrink: 0;
+    color: var(--muted);
+    transition: color 0.18s var(--ease-out), transform 0.18s var(--ease-out);
+  }
+
+  /* ---- 响应式 ---- */
+  @media (max-width: 480px) {
+    .tool-link,
+    .tool-item.wip {
+      gap: 1rem;
+      padding: 1rem 0.25rem;
+    }
+
+    .tool-icon {
+      font-size: 1.5rem;
+      width: 2rem;
+    }
+
+    .tool-name {
+      font-size: 0.95rem;
+    }
+  }
+</style>
