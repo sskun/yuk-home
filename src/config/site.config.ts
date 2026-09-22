@@ -26,6 +26,16 @@ const config: SiteConfig = {
     description: '纯客户端、零上传：浏览器内可完成的轻量工具。',
     heading: '工具',
     intro: '基于浏览器端的工具列表，无需安装，打开即用。',
+    items: [
+      {
+        slug: 'image-governance',
+        title: '图片治理',
+        description: '裁剪到指定像素尺寸，或按目标体积压缩大小，输出图片不离开你的设备。',
+        icon: '🖼',
+        tags: ['图片', '纯前端'],
+        status: 'ready',
+      },
+    ],
   },
   nav: {
     brand: 'yuk',

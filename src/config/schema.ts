@@ -58,6 +58,8 @@ export interface ToolIndexMeta {
    * 缺省时组件回落到内置默认文案，保持“零上传 / 无需注册”等站点承诺。
    */
   highlights?: ToolHighlight[];
+  /** 工具列表（直接在此维护，不依赖首页 tool-grid 区块）*/
+  items?: ToolItem[];
 }
 
 /** 工具列表页侧栏亮点条目 */
