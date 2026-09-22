@@ -1,29 +1,23 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import ToolBento from '../../components/ToolBento.astro';
+import ToolList from '../../components/ToolList.astro';
 import rawConfig from '../../config/site.config';
 import { validateConfig } from '../../config/schema';
 
-// 工具列表页（/tools）：Bento 网格 + 左对齐 hero + 隐私亮点侧栏。
-// 与首页 tool-grid 区块视觉分层：首页保留 ToolGridSection，此处专用 ToolBento。
+// 工具列表页（/tools）：简洁页头 + 竖向列表。
 const config = validateConfig(rawConfig);
 
 const meta = config.toolsIndex ?? {
   title: '工具',
   description: '浏览器内可完成的小工具集合',
-  heading: '小工具',
+  heading: '工具',
   intro: undefined as string | undefined,
-  highlights: undefined,
 };
 
 const base = config.theme.animationEnabled ? config.theme.animationBaseDelay : 0;
 
-// 复用首页 tool-grid 区块的 items 配置；如果配置里没找到，就渲染空占位
 const toolsSection = config.sections.find((s) => s.type === 'tool-grid');
 const items = toolsSection && toolsSection.type === 'tool-grid' ? toolsSection.items : [];
-
-const readyCount = items.filter((i) => i.status !== 'wip').length;
-const wipCount = items.length - readyCount;
 ---
 
 <Layout
@@ -37,104 +31,20 @@ const wipCount = items.length - readyCount;
   nav={config.nav}
 >
   <main class="tools-page">
-    <!-- 现代化头部设计 - Bento Grid 风格 -->
-    <section class="tools-hero" aria-label="工具集介绍">
-      <!-- 背景光晕效果 -->
-      <div class="hero-glow" aria-hidden="true"></div>
-      
-      <!-- 主内容区 -->
-      <div class="hero-content">
-        <!-- 左侧：品牌与标题 -->
-        <div class="hero-left" data-animate="left">
-          <div class="eyebrow-badge">
-            <span class="eyebrow-dot"></span>
-            <span class="eyebrow-text">TOOLS · 工具集</span>
-          </div>
-          <h1 class="hero-title">
-            <span class="title-line-1">打造你的</span>
-            <span class="title-line-2 title-gradient">浏览器工具箱</span>
-          </h1>
-          <p class="hero-description">
-            所有处理均在你的浏览器中完成，文件不会上传到任何服务器。
-            隐私优先 · 零配置 · 开箱即用
-          </p>
-          
-          <!-- CTA 按钮组 -->
-          <div class="hero-actions" data-animate="fade" style="--animate-delay: 200ms">
-            <a href="#tools-grid" class="btn-primary">
-              <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <path fill="currentColor" d="M12 4l1.41 1.41L8.83 9H21v2H8.83l4.58 4.59L12 17l-8-8z"/>
-              </svg>
-              立即体验
-              <svg class="btn-arrow" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                <path fill="currentColor" d="M12 4l1.41 1.41L8.83 9H21v2H8.83l4.58 4.59L12 17l-8-8z"/>
-              </svg>
-            </a>
-            <button class="btn-secondary" onclick="showFeatures()" aria-label="了解更多">
-              <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <path fill="currentColor" d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-              </svg>
-              了解特性
-            </button>
-          </div>
-        </div>
-        
-        <!-- 右侧：统计卡片组 (Bento Grid) -->
-        <div class="hero-stats" data-animate="right">
-          <!-- 主要统计卡片 -->
-          <div class="stat-card featured">
-            <div class="stat-icon" style="background: linear-gradient(135deg, var(--color-primary), var(--color-accent));">
-              <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
-                <path fill="currentColor" d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/>
-              </svg>
-            </div>
-            <div class="stat-content">
-              <span class="stat-value">{readyCount}</span>
-              <span class="stat-label">款实用工具</span>
-            </div>
-          </div>
-          
-          <!-- 次要统计卡片 -->
-          {wipCount > 0 && (
-            <div class="stat-card">
-              <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">
-                <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-                  <path fill="currentColor" d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H13v5h4.28c-.18.85-.67 1.56-1.36 2.11l1.5 1.5c1.15-1 1.92-2.45 2.07-4.09l.01-.12c0-2.76-2.24-5-5-5zm-2.5 0c-2.76 0-5 2.24-5 5 0 1.64.8 3.11 2.07 4.09l1.5-1.5c-.69-.55-1.18-1.26-1.36-2.11H9.5V7z"/>
-                </svg>
-              </div>
-              <div class="stat-content">
-                <span class="stat-value">{wipCount}</span>
-                <span class="stat-label">项开发中</span>
-              </div>
-            </div>
-          )}
-          
-          <!-- 隐私徽章 -->
-          <div class="stat-card privacy">
-            <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #06b6d4);">
-              <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-                <path fill="currentColor" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
-              </svg>
-            </div>
-            <div class="stat-content">
-              <span class="stat-label">隐私优先</span>
-              <span class="stat-sublabel">本地处理</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 装饰性网格线 -->
-      <div class="hero-grid-lines" aria-hidden="true"></div>
-    </section>
+    <!-- 页头 -->
+    <header class="page-head" data-animate style={`--animate-delay:${base}ms`}>
+      <h1 class="page-title">工具</h1>
+      <p class="page-desc">
+        {meta.intro ?? '所有处理均在浏览器中完成，文件不会上传到任何服务器。'}
+      </p>
+    </header>
 
+    <!-- 工具列表 -->
     {
       items.length > 0 ? (
-        <section id="tools-grid" class="tools-bento" aria-label="工具卡片">
-          <ToolBento items={items} highlights={meta.highlights} delay={base + 200} />
-        </section>
+        <ToolList items={items} delay={base + 80} />
       ) : (
-        <p class="empty" data-animate style={`--animate-delay:${base}ms`}>
+        <p class="empty" data-animate style={`--animate-delay:${base + 80}ms`}>
           暂无工具，敬请期待。
         </p>
       )
@@ -145,376 +55,47 @@ const wipCount = items.length - readyCount;
 <script>
   import { initAnimations } from '../../scripts/animate';
   initAnimations();
-  
-  // 平滑滚动到工具网格
-  function showFeatures() {
-    const grid = document.getElementById('tools-grid');
-    if (grid) {
-      grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }
 </script>
 
 <style>
   .tools-page {
     max-width: var(--max-width);
     margin: 0 auto;
-    padding: 8rem 1.5rem 3rem;
-    position: relative;
+    padding: 8rem 1.5rem 4rem;
   }
 
-  /* ========== HERO SECTION ========== */
-  .tools-hero {
-    position: relative;
-    margin-bottom: 3.5rem;
-    overflow: hidden;
+  /* 页头 */
+  .page-head {
+    margin-bottom: 2.5rem;
   }
 
-  /* 背景光晕效果 */
-  .hero-glow {
-    position: absolute;
-    top: -50%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 120%;
-    height: 80%;
-    background: radial-gradient(ellipse 80% 50% at 50% 20%, 
-      color-mix(in srgb, var(--color-primary) 20%, transparent),
-      color-mix(in srgb, var(--color-accent) 15%, transparent),
-      transparent 70%);
-    opacity: 0.6;
-    filter: blur(60px);
-    z-index: -1;
-    animation: glow-pulse 8s ease-in-out infinite;
-  }
-
-  @keyframes glow-pulse {
-    0%, 100% { opacity: 0.6; transform: translateX(-50%) scale(1); }
-    50% { opacity: 0.8; transform: translateX(-50%) scale(1.05); }
-  }
-
-  .hero-content {
-    display: grid;
-    grid-template-columns: 1.5fr 1fr;
-    gap: 3rem;
-    align-items: center;
-    position: relative;
-    z-index: 1;
-  }
-
-  /* 左侧内容 */
-  .hero-left {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .eyebrow-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.5rem 1rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    width: fit-content;
-  }
-
-  .eyebrow-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--color-accent);
-    box-shadow: 0 0 12px color-mix(in srgb, var(--color-accent) 80%, transparent);
-    animation: pulse 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.7; transform: scale(0.9); }
-  }
-
-  .eyebrow-text {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--color-accent);
-  }
-
-  .hero-title {
-    font-size: clamp(2.5rem, 6vw, 3.8rem);
-    font-weight: 800;
-    line-height: 1.1;
-    letter-spacing: -0.03em;
-    margin: 0;
-  }
-
-  .title-line-1 {
-    display: block;
-    color: var(--fg);
-  }
-
-  .title-line-2 {
-    display: block;
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 50%, var(--color-primary) 100%);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: gradient-shift 3s ease-in-out infinite;
-  }
-
-  @keyframes gradient-shift {
-    0%, 100% { background-position: 0% center; }
-    50% { background-position: 100% center; }
-  }
-
-  .hero-description {
-    font-size: 1.1rem;
-    line-height: 1.7;
-    color: var(--muted);
-    margin: 0;
-    max-width: 52ch;
-  }
-
-  .hero-actions {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .btn-primary,
-  .btn-secondary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.9rem 1.5rem;
-    font-size: 1rem;
-    font-weight: 600;
-    border-radius: 12px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s var(--ease-out);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .btn-primary {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-    color: white;
-    box-shadow: 
-      0 4px 15px rgba(124, 58, 237, 0.3),
-      0 2px 8px rgba(34, 211, 238, 0.2);
-  }
-
-  .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 
-      0 6px 20px rgba(124, 58, 237, 0.4),
-      0 4px 12px rgba(34, 211, 238, 0.3);
-  }
-
-  .btn-primary .btn-arrow {
-    transition: transform 0.3s var(--ease-out);
-  }
-
-  .btn-primary:hover .btn-arrow {
-    transform: translateX(4px);
-  }
-
-  .btn-secondary {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--fg);
-  }
-
-  .btn-secondary:hover {
-    background: var(--surface-2);
-    border-color: var(--border-strong);
-    transform: translateY(-2px);
-  }
-
-  .btn-icon {
-    flex-shrink: 0;
-  }
-
-  /* 右侧 Bento Grid 统计卡片 */
-  .hero-stats {
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(2, 1fr);
-    grid-auto-rows: minmax(100px, auto);
-  }
-
-  .stat-card {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1.25rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    backdrop-filter: blur(12px);
-    transition: all 0.3s var(--ease-out);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
-    opacity: 0;
-    transition: opacity 0.3s var(--ease-out);
-  }
-
-  .stat-card:hover {
-    border-color: var(--border-strong);
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  }
-
-  .stat-card:hover::before {
-    opacity: 1;
-  }
-
-  .stat-card.featured {
-    grid-column: span 2;
-    padding: 1.5rem;
-    background: linear-gradient(135deg, var(--surface), color-mix(in srgb, var(--color-primary) 8%, transparent));
-  }
-
-  .stat-card.privacy {
-    grid-row: span 2;
-  }
-
-  .stat-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  }
-
-  .stat-card.featured .stat-icon {
-    width: 64px;
-    height: 64px;
-  }
-
-  .stat-content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .stat-value {
+  .page-title {
     font-size: 1.75rem;
-    font-weight: 800;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     color: var(--fg);
-    line-height: 1;
+    margin: 0 0 0.6rem;
   }
 
-  .stat-card.featured .stat-value {
-    font-size: 2.25rem;
-  }
-
-  .stat-label {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: var(--muted-strong);
-  }
-
-  .stat-sublabel {
-    font-size: 0.75rem;
+  .page-desc {
+    font-size: 0.95rem;
     color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    margin: 0;
+    max-width: 60ch;
+    line-height: 1.6;
   }
 
-  /* 装饰性网格线 */
-  .hero-grid-lines {
-    position: absolute;
-    inset: 0;
-    background-image: 
-      linear-gradient(var(--border) 1px, transparent 1px),
-      linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 60px 60px;
-    opacity: 0.3;
-    pointer-events: none;
+  /* 空态 */
+  .empty {
+    color: var(--muted);
+    font-size: 0.95rem;
+    padding: 3rem 0;
   }
 
-  /* 工具网格 ID */
-  #tools-grid {
-    scroll-margin-top: 2rem;
-  }
-
-  /* ========== RESPONSIVE ========== */
-  @media (max-width: 900px) {
-    .hero-content {
-      grid-template-columns: 1fr;
-      gap: 2.5rem;
-    }
-
-    .hero-stats {
-      order: -1;
-      max-width: 400px;
-      margin: 0 auto;
-    }
-
-    .stat-card.featured {
-      grid-column: span 1;
-    }
-
-    .stat-card.privacy {
-      grid-row: span 1;
-    }
-  }
-
+  /* 响应式 */
   @media (max-width: 640px) {
     .tools-page {
-      padding: 7rem 1.25rem 2rem;
-    }
-
-    .hero-title {
-      font-size: clamp(2rem, 5vw, 2.8rem);
-    }
-
-    .hero-actions {
-      flex-direction: column;
-    }
-
-    .btn-primary,
-    .btn-secondary {
-      width: 100%;
-    }
-
-    .hero-stats {
-      grid-template-columns: 1fr;
-    }
-
-    .stat-card.featured,
-    .stat-card.privacy {
-      grid-column: span 1;
-      grid-row: span 1;
-    }
-  }
-
-  /* 平板：hero 上下堆叠 */
-  @media (max-width: 720px) {
-    .tools-hero {
-      margin-bottom: 2.5rem;
-      padding-bottom: 0;
-      border-bottom: none;
+      padding: 7rem 1.25rem 3rem;
     }
   }
 </style>
