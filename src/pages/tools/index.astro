@@ -17,7 +17,7 @@ const meta = config.toolsIndex ?? {
 const base = config.theme.animationEnabled ? config.theme.animationBaseDelay : 0;
 
 const toolsSection = config.sections.find((s) => s.type === 'tool-grid');
-const items = toolsSection && toolsSection.type === 'tool-grid' ? toolsSection.items : [];
+const items = (meta.items ?? (toolsSection && toolsSection.type === 'tool-grid' ? toolsSection.items : [])) ?? [];
 ---
 
 <Layout
