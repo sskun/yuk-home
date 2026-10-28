@@ -1,7 +1,8 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
-import ArticleCard from '../../components/ArticleCard.astro';
+import ArticleRow from '../../components/ArticleRow.astro';
+import PageHeader from '../../components/ui/PageHeader.astro';
 import rawConfig from '../../config/site.config';
 import { validateConfig } from '../../config/schema';
 
@@ -14,6 +15,7 @@ const meta = config.articleIndex ?? {
   description: '全部文章列表',
   heading: '文章',
   intro: undefined as string | undefined,
+  eyebrow: undefined as string | undefined,
 };
 
 // 过滤草稿：与详情页 [...slug].astro 的策略保持一致
@@ -41,31 +43,27 @@ const base = config.theme.animationEnabled ? config.theme.animationBaseDelay : 0
   nav={config.nav}
 >
   <main class="article-list">
-    <header class="list-header">
-      <h1 data-animate style="--animate-delay:0ms">{meta.heading}</h1>
-      {meta.intro && <p class="intro" data-animate style={`--animate-delay:${base}ms`}>{meta.intro}</p>}
+    <PageHeader
+      eyebrow={meta.eyebrow}
+      heading={meta.heading}
+      intro={meta.intro}
+      meta={entries.length > 0 ? `共 ${entries.length} 篇` : undefined}
+    />
+    <div class="body">
       {
-        entries.length > 0 && (
-          <p class="count" data-animate style={`--animate-delay:${base + 60}ms`}>
-            共 {entries.length} 篇
+        entries.length > 0 ? (
+          <ol class="list">
+            {entries.map((entry, i) => (
+              <ArticleRow entry={entry} delay={base + i * 70} lang={config.site.lang} headingLevel={2} />
+            ))}
+          </ol>
+        ) : (
+          <p class="empty" data-animate style={`--animate-delay:${base}ms`}>
+            还没有已发布的文章，敬请期待。
           </p>
         )
       }
-    </header>
-
-    {
-      entries.length > 0 ? (
-        <div class="grid">
-          {entries.map((entry, i) => (
-            <ArticleCard entry={entry} delay={base + (i + 1) * 90} lang={config.site.lang} />
-          ))}
-        </div>
-      ) : (
-        <p class="empty" data-animate style={`--animate-delay:${base}ms`}>
-          还没有已发布的文章，敬请期待。
-        </p>
-      )
-    }
+    </div>
   </main>
 </Layout>
 
@@ -77,46 +75,28 @@ const base = config.theme.animationEnabled ? config.theme.animationBaseDelay : 0
 
 <style>
   .article-list {
-    max-width: var(--max-width);
+    padding-bottom: 6rem;
+  }
+  .body {
+    /* 与 PageHeader 内容区同宽：内容 max-width + 两侧内边距 */
+    max-width: calc(var(--max-width) + 3rem);
     margin: 0 auto;
-    /* 顶部留白为浮动导航栏让位 */
-    padding: 7rem 1.5rem 6rem;
+    padding: 0 1.5rem;
   }
-
-  .list-header {
-    margin-bottom: 3rem;
-    text-align: center;
+  .list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--border);
   }
-
-  .list-header h1 {
-    font-size: clamp(2rem, 5vw, 3rem);
-    font-weight: 700;
-    letter-spacing: -0.015em;
-    margin: 0 0 0.75rem;
-  }
-
-  .intro {
-    margin: 0 auto;
-    max-width: 640px;
-    color: var(--muted);
-  }
-
-  .count {
-    margin: 1rem 0 0;
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    color: var(--muted);
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-  }
-
   .empty {
     text-align: center;
     color: var(--muted);
     padding: 4rem 0;
+  }
+  @media (max-width: 640px) {
+    .body {
+      padding: 0 1.25rem;
+    }
   }
 </style>

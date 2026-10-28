@@ -4,6 +4,8 @@ import HeroSection from './HeroSection.astro';
 import FeatureSection from './FeatureSection.astro';
 import ShowcaseSection from './ShowcaseSection.astro';
 import ToolGridSection from './ToolGridSection.astro';
+import ArticlesSection from './ArticlesSection.astro';
+import ContactSection from './ContactSection.astro';
 import FooterSection from './FooterSection.astro';
 
 // 区块分发器：按 section.type 分发到对应组件；未知类型安全跳过并告警。
@@ -11,12 +13,15 @@ interface Props {
   section: Section;
   index: number;
   theme: ThemeConfig;
+  /** 站点语言，用于日期本地化 */
+  lang?: string;
 }
-const { section, index, theme } = Astro.props;
+const { section, index, theme, lang } = Astro.props;
 
-// 动画延迟：全局开关与区块开关同时为真才启用，延迟随区块序号递增。
+// 动画延迟：区块都是滚动进入视口才触发，按序号叠加延迟会让靠后区块入场明显迟钝；
+// 因此只给首屏之后的区块一个基础延迟，区块内部各元素再自行错峰。
 const animateOn = theme.animationEnabled && section.animate !== false;
-const delay = animateOn ? index * theme.animationBaseDelay : 0;
+const delay = animateOn && index > 0 ? Math.min(theme.animationBaseDelay, 120) : 0;
 ---
 
 {
@@ -28,6 +33,10 @@ const delay = animateOn ? index * theme.animationBaseDelay : 0;
     <ShowcaseSection data={section} delay={delay} />
   ) : section.type === 'tool-grid' ? (
     <ToolGridSection data={section} delay={delay} />
+  ) : section.type === 'articles' ? (
+    <ArticlesSection data={section} delay={delay} lang={lang} />
+  ) : section.type === 'contact' ? (
+    <ContactSection data={section} delay={delay} />
   ) : section.type === 'footer' ? (
     <FooterSection data={section} delay={delay} />
   ) : (

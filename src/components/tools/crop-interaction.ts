@@ -16,7 +16,8 @@ export interface CropInteractionState {
   srcHeight: number;
   cropW: number;
   cropH: number;
-  cropLock: boolean;
+  /** 仅为与主 State 结构兼容保留；选区缩放始终保持输出比例 */
+  cropLock?: boolean;
   cropRect: Rect | null;
   busy: boolean;
 }
@@ -44,13 +45,19 @@ export function attachCropInteraction(
 
   function modeFromTarget(target: EventTarget | null): HandleMode | null {
     if (!(target instanceof HTMLElement)) return null;
-    if (target.classList.contains('ig-crop-grab')) return 'move';
-    const cls = Array.from(target.classList).find((c) => /^(tl|t|tr|l|r|bl|b|br)$/.test(c));
-    return (cls as HandleMode | undefined) ?? null;
+    // 把手内部可能有装饰子元素，向上找到最近的把手 / 选区
+    const handle = target.closest<HTMLElement>('.ig-handle');
+    if (handle) {
+      const cls = Array.from(handle.classList).find((c) => /^(tl|t|tr|l|r|bl|b|br)$/.test(c));
+      if (cls) return cls as HandleMode;
+    }
+    if (target.closest('.ig-crop-overlay')) return 'move';
+    return null;
   }
 
   function endDrag() {
     active = null;
+    overlay.classList.remove('dragging');
     window.removeEventListener('pointermove', onPointerMove);
     window.removeEventListener('pointerup', onPointerUp);
     window.removeEventListener('pointercancel', onPointerUp);
@@ -62,6 +69,7 @@ export function attachCropInteraction(
     if (!mode) return;
     ev.preventDefault();
     active = { mode, startX: ev.clientX, startY: ev.clientY, startRect: currentRect() };
+    overlay.classList.add('dragging');
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
     window.addEventListener('pointercancel', onPointerUp);
@@ -73,7 +81,7 @@ export function attachCropInteraction(
     if (sr.width <= 0 || sr.height <= 0) return;
     const dx = ((ev.clientX - active.startX) / sr.width) * state.srcWidth;
     const dy = ((ev.clientY - active.startY) / sr.height) * state.srcHeight;
-    const next = clampRect(moveOrResize(active.mode, active.startRect, dx, dy, state), state);
+    const next = moveOrResize(active.mode, active.startRect, dx, dy, state);
     state.cropRect = next;
     paintOverlay(overlay, next, state);
   }
@@ -82,13 +90,37 @@ export function attachCropInteraction(
     if (active) endDrag();
   }
 
+  // 键盘可达：方向键平移选区，Shift 加速
+  function onKeyDown(ev: KeyboardEvent) {
+    if (state.busy) return;
+    const step = Math.max(1, Math.round(Math.max(state.srcWidth, state.srcHeight) * (ev.shiftKey ? 0.05 : 0.01)));
+    const delta: Record<string, [number, number]> = {
+      ArrowLeft: [-step, 0],
+      ArrowRight: [step, 0],
+      ArrowUp: [0, -step],
+      ArrowDown: [0, step],
+    };
+    const d = delta[ev.key];
+    if (!d) return;
+    ev.preventDefault();
+    const next = moveOrResize('move', currentRect(), d[0], d[1], state);
+    state.cropRect = next;
+    paintOverlay(overlay, next, state);
+  }
+  overlay.addEventListener('keydown', onKeyDown);
   overlay.addEventListener('pointerdown', onPointerDown);
   overlay.addEventListener('selectstart', (e) => e.preventDefault());
   // 兜底：父层刷新时清理监听
   root.addEventListener('igcleanup', endDrag, { once: true });
 }
 
-/** 按拖拽模式返回移动或缩放后的矩形（未做边界裁剪）。 */
+/**
+ * 按拖拽模式返回移动或缩放后的矩形，结果已限制在源图边界内。
+ *
+ * 缩放时选区始终保持输出宽高比（cropW:cropH）：输出尺寸是固定的，
+ * 若允许自由比例，最终 drawImage 会把选区拉伸/压扁到输出尺寸。
+ * 锚点（被拖把手的对边/对角）保持不动；边中点把手以另一轴的中线为锚。
+ */
 export function moveOrResize(
   mode: HandleMode,
   r: Rect,
@@ -97,43 +129,41 @@ export function moveOrResize(
   state: CropInteractionState,
 ): Rect {
   if (mode === 'move') {
-    return { x: r.x + dx, y: r.y + dy, w: r.w, h: r.h };
+    return clampRect({ x: r.x + dx, y: r.y + dy, w: r.w, h: r.h }, state);
   }
-  let { x, y, w, h } = r;
-  if (mode === 'tl') { w -= dx; h -= dy; x += dx; y += dy; }
-  else if (mode === 'tr') { w += dx; h -= dy; y += dy; }
-  else if (mode === 'bl') { w -= dx; h += dy; x += dx; }
-  else if (mode === 'br') { w += dx; h += dy; }
-  else if (mode === 't') { h -= dy; y += dy; }
-  else if (mode === 'b') { h += dy; }
-  else if (mode === 'l') { w -= dx; x += dx; }
-  else if (mode === 'r') { w += dx; }
+  const ratio = state.cropW > 0 && state.cropH > 0 ? state.cropW / state.cropH : r.w / r.h;
+  // 每个把手在 x / y 方向上的扩展方向：1 向右/下，-1 向左/上，0 以中线为锚居中扩展
+  const sx = mode.includes('r') ? 1 : mode.includes('l') ? -1 : 0;
+  const sy = mode.includes('b') ? 1 : mode.includes('t') ? -1 : 0;
+  // 锚点
+  const ax = sx === 1 ? r.x : sx === -1 ? r.x + r.w : r.x + r.w / 2;
+  const ay = sy === 1 ? r.y : sy === -1 ? r.y + r.h : r.y + r.h / 2;
 
-  if (state.cropLock) {
-    const targetRatio = state.cropW / state.cropH;
-    const wFromH = h * targetRatio;
-    const hFromW = w / targetRatio;
-    if (Math.abs(wFromH - w) < Math.abs(hFromW - h)) {
-      const newW = Math.max(1, wFromH);
-      const dw = newW - w;
-      if (mode === 'tl' || mode === 'bl' || mode === 'l') x -= dw;
-      w = newW;
-    } else {
-      const newH = Math.max(1, hFromW);
-      const dh = newH - h;
-      if (mode === 'tl' || mode === 'tr' || mode === 't') y -= dh;
-      h = newH;
-    }
-  }
+  // 期望宽度：角把手取两个方向中扩张更多的一边，边把手只看被拖的轴
+  const wByX = r.w + sx * dx;
+  const wByY = (r.h + sy * dy) * ratio;
+  let w = sx !== 0 && sy !== 0 ? Math.max(wByX, wByY) : sx !== 0 ? wByX : wByY;
+
+  // 从锚点出发可用的最大空间
+  const maxW = sx === 1 ? state.srcWidth - ax : sx === -1 ? ax : 2 * Math.min(ax, state.srcWidth - ax);
+  const maxH = sy === 1 ? state.srcHeight - ay : sy === -1 ? ay : 2 * Math.min(ay, state.srcHeight - ay);
+  const minSide = 8;
+  const minW = Math.max(minSide, minSide * ratio);
+  w = Math.min(w, maxW, maxH * ratio);
+  w = Math.max(w, Math.min(minW, maxW, maxH * ratio));
+  const h = w / ratio;
+
+  const x = sx === 1 ? ax : sx === -1 ? ax - w : ax - w / 2;
+  const y = sy === 1 ? ay : sy === -1 ? ay - h : ay - h / 2;
   return { x, y, w, h };
 }
 
-/** 把矩形限制在源图边界内，保证最小边长 8px。 */
+/** 平移用：保持尺寸不变，把矩形推回源图边界内；尺寸超出时等比缩小。 */
 export function clampRect(r: Rect, state: CropInteractionState): Rect {
-  const minSide = 8;
   let { x, y, w, h } = r;
-  w = Math.max(minSide, Math.min(state.srcWidth, w));
-  h = Math.max(minSide, Math.min(state.srcHeight, h));
+  const scale = Math.min(1, state.srcWidth / w, state.srcHeight / h);
+  w *= scale;
+  h *= scale;
   x = Math.max(0, Math.min(state.srcWidth - w, x));
   y = Math.max(0, Math.min(state.srcHeight - h, y));
   return { x, y, w, h };

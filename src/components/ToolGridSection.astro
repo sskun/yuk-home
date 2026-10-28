@@ -1,4 +1,5 @@
 ---
+import Icon from './ui/Icon.astro';
 import type { ToolGridSection } from '../config/schema';
 
 // 工具入口区块：复用 ShowcaseSection 的视觉语言（hover lift + 渐变占位 + tag pill）。
@@ -46,7 +47,7 @@ function resolveHref(slug: string, override?: string): string {
               style={`--animate-delay:${delay + 140 + i * 90}ms`}
             >
               <div class="thumb-wrap thumb-placeholder" aria-hidden="true">
-                <span class="glyph">{item.icon}</span>
+                <span class="glyph"><Icon name={item.icon} size={22} /></span>
               </div>
               <div class="body">
                 <h3 class="title">

@@ -284,6 +284,55 @@ describe('validateConfig - tool-grid 区块', () => {
   });
 });
 
+describe('validateConfig - articles / contact 区块', () => {
+  it('合法 articles 与 contact 区块应通过', () => {
+    const cfg = makeValidConfig();
+    cfg.sections.splice(
+      1,
+      0,
+      { id: 'articles', type: 'articles', heading: '最新文章', limit: 3, more: { label: '全部', href: '/article' } },
+      { id: 'contact', type: 'contact', heading: '聊聊', ctas: [{ label: 'GitHub', href: 'https://github.com', variant: 'primary' }] },
+    );
+    expect(validateConfig(cfg)).toBe(cfg);
+  });
+  it('articles.limit 非正整数应报错', () => {
+    const cfg = makeValidConfig();
+    cfg.sections.splice(1, 0, { id: 'articles', type: 'articles', heading: '最新文章', limit: 0 });
+    expect(() => validateConfig(cfg)).toThrow(/sections\[1\]\.limit/);
+  });
+  it('articles.more 缺 href 应报错', () => {
+    const cfg = makeValidConfig();
+    cfg.sections.splice(1, 0, { id: 'articles', type: 'articles', heading: '最新文章', more: { label: '全部', href: '' } });
+    expect(() => validateConfig(cfg)).toThrow(/sections\[1\]\.more\.href/);
+  });
+  it('contact 缺 heading 或 cta.label 应报错', () => {
+    const cfg = makeValidConfig();
+    cfg.sections.splice(1, 0, { id: 'contact', type: 'contact', heading: '', ctas: [{ label: '', href: '#', variant: 'ghost' }] });
+    expect(() => validateConfig(cfg)).toThrow(/sections\[1\]\.heading[\s\S]*sections\[1\]\.ctas\[0\]\.label/);
+  });
+});
+
+describe('validateConfig - hero 扩展字段', () => {
+  it('合法 socials 与 profile 应通过', () => {
+    const cfg = makeValidConfig();
+    Object.assign(cfg.sections[0], {
+      socials: [{ label: 'GitHub', href: 'https://github.com', icon: 'github', external: true }],
+      profile: { filename: 'about.ts', variable: 'me', entries: [{ key: 'role', value: 'dev' }] },
+    });
+    expect(validateConfig(cfg)).toBe(cfg);
+  });
+  it('socials 项缺 icon 应报错并含索引路径', () => {
+    const cfg = makeValidConfig();
+    Object.assign(cfg.sections[0], { socials: [{ label: 'GitHub', href: 'https://github.com', icon: '' }] });
+    expect(() => validateConfig(cfg)).toThrow(/sections\[0\]\.socials\[0\]\.icon/);
+  });
+  it('profile.entries 非数组应报错', () => {
+    const cfg = makeValidConfig();
+    Object.assign(cfg.sections[0], { profile: { filename: 'a.ts', variable: 'me', entries: 'x' } });
+    expect(() => validateConfig(cfg)).toThrow(/sections\[0\]\.profile\.entries/);
+  });
+});
+
 describe('isCssColor', () => {
   it.each(['#fff', '#ffffff', '#ffffff80', 'rgb(0,0,0)', 'rgba(0,0,0,0.5)', 'red', 'rebeccapurple'])(
     '合法颜色 %s',
