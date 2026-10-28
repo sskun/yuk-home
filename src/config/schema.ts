@@ -95,7 +95,16 @@ export interface ThemeConfig {
 
 // ============ 区块（可辨识联合） ============
 
-export type SectionType = 'hero' | 'feature' | 'showcase' | 'tool-grid' | 'articles' | 'contact' | 'footer';
+export type SectionType =
+  | 'hero'
+  | 'feature'
+  | 'showcase'
+  | 'tool-grid'
+  | 'articles'
+  | 'contact'
+  | 'pillars'
+  | 'timeline'
+  | 'footer';
 
 /** 所有区块共有的基础字段 */
 export interface SectionBase {
@@ -115,14 +124,54 @@ export interface HeroSection extends SectionBase {
   subheadline: string;
   ctas: CallToAction[];
   backgroundEffect?: BgEffect;
-  /** 主标题上方的问候语，如 "你好，我是 yukun" */
-  greeting?: string;
+  /** 名字（与头像一起显示在标题上方） */
+  name?: string;
+  /** 一句话身份，如 "全栈开发者 · 独立产品人" */
+  role?: string;
+  /** 头像图片路径（/src/assets/... 会自动优化）；缺省显示名字首字母 */
+  avatar?: string;
   /** 状态胶囊文案（带呼吸绿点），如 "正在构建 · 欢迎交流" */
   status?: string;
   /** 社交链接（图标按钮），icon 为站点图标名 */
   socials?: SocialLink[];
-  /** 右侧代码卡片：以 TS 对象字面量的形式展示个人档案 */
-  profile?: HeroProfile;
+  /** 首屏数据亮点（数字滚动动画） */
+  stats?: HeroStat[];
+  /** 右侧产品舞台：主窗口 + 环绕的浮动卡片 */
+  stage?: HeroStage;
+  /** 首屏底部滚动的技术 / 能力标签带 */
+  marquee?: string[];
+}
+
+/** 首屏数据亮点；value 为 'articles' 时自动取已发布文章数 */
+export interface HeroStat {
+  value: number | 'articles';
+  /** 数字后缀，如 "+"、"年" */
+  suffix?: string;
+  label: string;
+}
+
+/** 首屏右侧产品舞台 */
+export interface HeroStage {
+  /** 主窗口标题栏里的地址文字，如 "npx tracemine start" */
+  address: string;
+  /** 主窗口截图（/src/assets/... 自动优化） */
+  image?: string;
+  /** 主窗口改放视频（mp4 / webm 地址），优先于 image；建议放 R2 */
+  video?: { src: string; poster?: string };
+  /** 主窗口截图下方的产品信息条 */
+  product: { name: string; tagline: string; href: string; logo?: string; external?: boolean };
+  /** 环绕主窗口的浮动小卡片，最多 3 张 */
+  floats?: StageFloat[];
+}
+
+export interface StageFloat {
+  /** 站点图标名；与 logo 二选一 */
+  icon?: string;
+  logo?: string;
+  title: string;
+  caption: string;
+  href?: string;
+  external?: boolean;
 }
 
 /** 社交/联系链接 */
@@ -134,14 +183,42 @@ export interface SocialLink {
   external?: boolean;
 }
 
-/** Hero 右侧代码卡片的数据 */
-export interface HeroProfile {
-  /** 窗口标题栏里的文件名，如 profile.ts */
-  filename: string;
-  /** 对象变量名，如 yukun */
-  variable: string;
-  /** 键值对；值为数组时渲染为字符串数组字面量 */
-  entries: { key: string; value: string | string[] }[];
+/** 能力区块：产品力 / 执行力 / 技术力等，每项一个核心数字 + 证据 */
+export interface PillarsSection extends SectionBase {
+  type: 'pillars';
+  heading: string;
+  intro?: string;
+  items: PillarItem[];
+}
+
+export interface PillarItem {
+  icon?: string;
+  title: string;
+  /** 核心数字或短语，如 "3 个"、"7 天" */
+  metric: string;
+  metricLabel: string;
+  description: string;
+  /** 证据要点 */
+  points?: string[];
+  /** 内容未补齐时置 true，卡片显示"待补充"虚线样式 */
+  placeholder?: boolean;
+}
+
+/** 经历时间线 */
+export interface TimelineSection extends SectionBase {
+  type: 'timeline';
+  heading: string;
+  intro?: string;
+  items: TimelineItem[];
+}
+
+export interface TimelineItem {
+  period: string;
+  title: string;
+  org?: string;
+  description: string;
+  tags?: string[];
+  placeholder?: boolean;
 }
 
 /** 特性介绍区块 */
@@ -203,6 +280,8 @@ export type Section =
   | ToolGridSection
   | ArticlesSection
   | ContactSection
+  | PillarsSection
+  | TimelineSection
   | FooterSection;
 
 // ============ 复用子类型 ============
@@ -284,7 +363,17 @@ export class ConfigError extends Error {
  */
 export function validateConfig(raw: unknown): SiteConfig {
   const errors: string[] = [];
-  const KNOWN_TYPES: SectionType[] = ['hero', 'feature', 'showcase', 'tool-grid', 'articles', 'contact', 'footer'];
+  const KNOWN_TYPES: SectionType[] = [
+    'hero',
+    'feature',
+    'showcase',
+    'tool-grid',
+    'articles',
+    'contact',
+    'pillars',
+    'timeline',
+    'footer',
+  ];
 
   if (raw === null || typeof raw !== 'object') {
     throw new ConfigError('配置必须是一个对象（site.config.ts 未正确导出）');
@@ -440,15 +529,53 @@ function validateSectionByType(s: Record<string, unknown>, path: string): string
           });
         }
       }
-      if (s.profile !== undefined) {
-        const pf = s.profile as Record<string, unknown> | null;
-        if (!pf || typeof pf !== 'object') {
-          errs.push(`${path}.profile: 必须为对象`);
+      if (s.stats !== undefined) {
+        if (!Array.isArray(s.stats)) {
+          errs.push(`${path}.stats: 必须为数组`);
         } else {
-          if (!isNonEmptyString(pf.filename)) errs.push(`${path}.profile.filename: 不能为空`);
-          if (!isNonEmptyString(pf.variable)) errs.push(`${path}.profile.variable: 不能为空`);
-          if (!Array.isArray(pf.entries)) errs.push(`${path}.profile.entries: 必须为数组`);
+          (s.stats as unknown[]).forEach((st, j) => {
+            const item = (st ?? {}) as Record<string, unknown>;
+            if (!(typeof item.value === 'number' || item.value === 'articles')) {
+              errs.push(`${path}.stats[${j}].value: 必须为数字或 'articles'`);
+            }
+            if (!isNonEmptyString(item.label)) errs.push(`${path}.stats[${j}].label: 不能为空`);
+          });
         }
+      }
+      if (s.stage !== undefined) {
+        const st = s.stage as Record<string, unknown> | null;
+        if (!st || typeof st !== 'object') {
+          errs.push(`${path}.stage: 必须为对象`);
+        } else {
+          if (!isNonEmptyString(st.address)) errs.push(`${path}.stage.address: 不能为空`);
+          const pd = (st.product ?? null) as Record<string, unknown> | null;
+          if (!pd || typeof pd !== 'object') {
+            errs.push(`${path}.stage.product: 必须为对象`);
+          } else {
+            if (!isNonEmptyString(pd.name)) errs.push(`${path}.stage.product.name: 不能为空`);
+            if (!isNonEmptyString(pd.href)) errs.push(`${path}.stage.product.href: 不能为空`);
+          }
+        }
+      }
+      break;
+    }
+    case 'pillars':
+    case 'timeline': {
+      if (!isNonEmptyString(s.heading)) errs.push(`${path}.heading: 不能为空`);
+      if (!Array.isArray(s.items) || (s.items as unknown[]).length < 1) {
+        errs.push(`${path}.items: 至少需要一项`);
+      } else {
+        (s.items as unknown[]).forEach((it, j) => {
+          const item = (it ?? {}) as Record<string, unknown>;
+          if (!isNonEmptyString(item.title)) errs.push(`${path}.items[${j}].title: 不能为空`);
+          if (!isNonEmptyString(item.description)) errs.push(`${path}.items[${j}].description: 不能为空`);
+          if (s.type === 'pillars' && !isNonEmptyString(item.metric)) {
+            errs.push(`${path}.items[${j}].metric: 不能为空`);
+          }
+          if (s.type === 'timeline' && !isNonEmptyString(item.period)) {
+            errs.push(`${path}.items[${j}].period: 不能为空`);
+          }
+        });
       }
       break;
     }

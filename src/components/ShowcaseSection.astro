@@ -2,6 +2,7 @@
 import type { ShowcaseSection } from '../config/schema';
 import Icon from './ui/Icon.astro';
 import SectionHeader from './ui/SectionHeader.astro';
+import SmartImage from './ui/SmartImage.astro';
 
 interface Props {
   data: ShowcaseSection;
@@ -41,14 +42,14 @@ const cols = count >= 4 ? 2 : Math.max(1, count);
             >
               <div class="cover" aria-hidden="true">
                 {item.thumbnail ? (
-                  <img src={item.thumbnail} alt="" loading="lazy" decoding="async" />
+                  <SmartImage src={item.thumbnail} alt="" widths={[480, 800, 1200]} sizes="(max-width: 640px) 100vw, 560px" />
                 ) : (
                   <Fragment>
                     <span class="cover-grid" />
                     <span class="cover-orb" />
                     {item.logo ? (
                       <span class="cover-tile logo">
-                        <img src={item.logo} alt="" width="72" height="72" loading="lazy" decoding="async" />
+                        <SmartImage src={item.logo} alt="" widths={[96, 192]} sizes="96px" />
                       </span>
                     ) : (
                       <span class="cover-tile">
@@ -170,14 +171,14 @@ const cols = count >= 4 ? 2 : Math.max(1, count);
       color-mix(in srgb, var(--c3) 25%, white);
     border-bottom: 1px solid var(--border);
   }
-  .cover img {
+  .cover :global(img) {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
     transition: transform 0.6s var(--ease-out);
   }
-  .card:hover .cover img {
+  .card:hover .cover :global(img) {
     transform: scale(1.03);
   }
   .cover-grid {
@@ -238,7 +239,7 @@ const cols = count >= 4 ? 2 : Math.max(1, count);
       0 0 0 1px color-mix(in srgb, var(--c1) 14%, transparent),
       0 14px 30px -10px color-mix(in srgb, var(--c1) 55%, transparent);
   }
-  .cover-tile.logo img {
+  .cover-tile.logo :global(img) {
     width: 100%;
     height: 100%;
     object-fit: cover;
