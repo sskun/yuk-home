@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import ToolList from '../../components/ToolList.astro';
+import ToolCards from '../../components/ToolCards.astro';
+import PageHeader from '../../components/ui/PageHeader.astro';
 import rawConfig from '../../config/site.config';
 import { validateConfig } from '../../config/schema';
 
@@ -12,6 +13,7 @@ const meta = config.toolsIndex ?? {
   description: '浏览器内可完成的小工具集合',
   heading: '工具',
   intro: undefined as string | undefined,
+  eyebrow: undefined as string | undefined,
 };
 
 const base = config.theme.animationEnabled ? config.theme.animationBaseDelay : 0;
@@ -31,24 +33,22 @@ const items = (meta.items ?? (toolsSection && toolsSection.type === 'tool-grid' 
   nav={config.nav}
 >
   <main class="tools-page">
-    <!-- 页头 -->
-    <header class="page-head" data-animate style={`--animate-delay:${base}ms`}>
-      <h1 class="page-title">工具</h1>
-      <p class="page-desc">
-        {meta.intro ?? '所有处理均在浏览器中完成，文件不会上传到任何服务器。'}
-      </p>
-    </header>
-
-    <!-- 工具列表 -->
-    {
-      items.length > 0 ? (
-        <ToolList items={items} delay={base + 80} />
-      ) : (
-        <p class="empty" data-animate style={`--animate-delay:${base + 80}ms`}>
-          暂无工具，敬请期待。
-        </p>
-      )
-    }
+    <PageHeader
+      eyebrow={meta.eyebrow}
+      heading={meta.heading}
+      intro={meta.intro ?? '所有处理均在浏览器中完成，文件不会上传到任何服务器。'}
+    />
+    <div class="body">
+      {
+        items.length > 0 ? (
+          <ToolCards items={items} delay={base + 80} comingSoon={config.toolsIndex?.comingSoon} />
+        ) : (
+          <p class="empty" data-animate style={`--animate-delay:${base + 80}ms`}>
+            暂无工具，敬请期待。
+          </p>
+        )
+      }
+    </div>
   </main>
 </Layout>
 
@@ -59,43 +59,22 @@ const items = (meta.items ?? (toolsSection && toolsSection.type === 'tool-grid' 
 
 <style>
   .tools-page {
-    max-width: var(--max-width);
+    padding-bottom: 6rem;
+  }
+  .body {
+    /* 与 PageHeader 内容区同宽：内容 max-width + 两侧内边距 */
+    max-width: calc(var(--max-width) + 3rem);
     margin: 0 auto;
-    padding: 8rem 1.5rem 4rem;
+    padding: 0 1.5rem;
   }
-
-  /* 页头 */
-  .page-head {
-    margin-bottom: 2.5rem;
-  }
-
-  .page-title {
-    font-size: 1.75rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--fg);
-    margin: 0 0 0.6rem;
-  }
-
-  .page-desc {
-    font-size: 0.95rem;
-    color: var(--muted);
-    margin: 0;
-    max-width: 60ch;
-    line-height: 1.6;
-  }
-
-  /* 空态 */
   .empty {
     color: var(--muted);
     font-size: 0.95rem;
     padding: 3rem 0;
   }
-
-  /* 响应式 */
   @media (max-width: 640px) {
-    .tools-page {
-      padding: 7rem 1.25rem 3rem;
+    .body {
+      padding: 0 1.25rem;
     }
   }
 </style>

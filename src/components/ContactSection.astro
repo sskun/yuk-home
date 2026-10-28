@@ -1,0 +1,170 @@
+---
+import type { ContactSection } from '../config/schema';
+import Icon from './ui/Icon.astro';
+
+// 联系区块：深色面板 + 渐变光晕，作为首页的收尾号召。
+interface Props {
+  data: ContactSection;
+  delay: number;
+}
+const { data, delay } = Astro.props;
+---
+
+<section id={data.id} class="contact">
+  <div class="panel" data-animate="scale" style={`--animate-delay:${delay}ms`}>
+    <div class="glow" aria-hidden="true"></div>
+    <div class="grid-lines" aria-hidden="true"></div>
+    <div class="content">
+      {data.eyebrow && <p class="eyebrow">{data.eyebrow}</p>}
+      <h2 class="heading">{data.heading}</h2>
+      {data.intro && <p class="intro">{data.intro}</p>}
+      {
+        data.ctas.length > 0 && (
+          <div class="ctas">
+            {data.ctas.map((cta) => (
+              <a
+                class:list={['cta', cta.variant]}
+                href={cta.href}
+                target={cta.external ? '_blank' : undefined}
+                rel={cta.external ? 'noopener noreferrer' : undefined}
+              >
+                <span>{cta.label}</span>
+                <Icon name={cta.external ? 'arrowUpRight' : 'arrowRight'} size={16} strokeWidth={2} />
+              </a>
+            ))}
+          </div>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact {
+    padding: 2rem 1.5rem 6rem;
+  }
+  .panel {
+    position: relative;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: clamp(3rem, 7vw, 5.5rem) clamp(1.5rem, 6vw, 4.5rem);
+    border-radius: 28px;
+    background: #0b0b12;
+    color: #fafafa;
+    overflow: hidden;
+    isolation: isolate;
+    box-shadow: 0 40px 80px -30px rgba(30, 27, 75, 0.45);
+  }
+  .glow {
+    position: absolute;
+    z-index: -1;
+    width: 720px;
+    height: 420px;
+    left: 50%;
+    bottom: -260px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: var(--grad-brand);
+    filter: blur(80px);
+    opacity: 0.55;
+  }
+  .grid-lines {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(ellipse 70% 80% at 50% 0%, #000 20%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 70% 80% at 50% 0%, #000 20%, transparent 75%);
+  }
+  .content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+  }
+  .eyebrow {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #a5b4fc;
+  }
+  .heading {
+    margin: 0;
+    font-size: clamp(2rem, 4.5vw, 3.25rem);
+    font-weight: 750;
+    letter-spacing: -0.04em;
+    line-height: 1.12;
+    background: linear-gradient(180deg, #ffffff 30%, #a1a1aa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .intro {
+    margin: 0;
+    max-width: 34em;
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    color: #a1a1aa;
+  }
+  .ctas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 3rem;
+    padding: 0 1.4rem;
+    border-radius: 999px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+      transform 0.2s var(--ease-out),
+      background-color 0.2s var(--ease-out),
+      border-color 0.2s var(--ease-out);
+  }
+  .cta :global(svg) {
+    transition: transform 0.2s var(--ease-out);
+  }
+  .cta:hover :global(svg) {
+    transform: translate(2px, -1px);
+  }
+  .cta:active {
+    transform: scale(0.97);
+  }
+  .cta.primary {
+    color: #0b0b12;
+    background: #fff;
+  }
+  .cta.primary:hover {
+    background: #e4e4e7;
+  }
+  .cta.ghost {
+    color: #fafafa;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .cta.ghost:hover {
+    border-color: rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.08);
+  }
+  @media (max-width: 640px) {
+    .contact {
+      padding: 1rem 1rem 4rem;
+    }
+    .panel {
+      border-radius: 22px;
+    }
+  }
+</style>

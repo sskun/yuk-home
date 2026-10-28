@@ -1,0 +1,100 @@
+---
+// 二级页面（文章列表、工具列表）统一页头：眉标 + H1 + 引言，背景带淡淡的点阵与光晕，
+// 与首页 Hero 保持同一套视觉语言。
+interface Props {
+  eyebrow?: string;
+  heading: string;
+  intro?: string;
+  /** 页头下方的辅助信息，如 "共 2 篇" */
+  meta?: string;
+}
+const { eyebrow, heading, intro, meta } = Astro.props;
+---
+
+<header class="ph">
+  <div class="ph-bg" aria-hidden="true"></div>
+  <div class="ph-inner">
+    {eyebrow && <p class="ph-eyebrow" data-animate>{eyebrow}</p>}
+    <h1 class="ph-heading" data-animate style="--animate-delay:60ms">{heading}</h1>
+    {intro && <p class="ph-intro" data-animate style="--animate-delay:120ms">{intro}</p>}
+    {meta && <p class="ph-meta" data-animate style="--animate-delay:160ms">{meta}</p>}
+  </div>
+</header>
+
+<style>
+  .ph {
+    position: relative;
+    padding: 9rem 1.5rem 3.5rem;
+    isolation: isolate;
+  }
+  .ph-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    background:
+      radial-gradient(600px 300px at 85% 0%, color-mix(in srgb, var(--grad-a) 14%, transparent), transparent 70%),
+      radial-gradient(500px 260px at 10% 10%, color-mix(in srgb, var(--grad-c) 10%, transparent), transparent 70%);
+  }
+  .ph-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--fg) 12%, transparent) 1px, transparent 0);
+    background-size: 26px 26px;
+    mask-image: radial-gradient(ellipse 60% 80% at 50% 0%, #000 20%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 60% 80% at 50% 0%, #000 20%, transparent 80%);
+  }
+  .ph-inner {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .ph-eyebrow {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+  .ph-eyebrow::before {
+    content: '';
+    width: 1.5rem;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.6;
+  }
+  .ph-heading {
+    margin: 0;
+    font-size: clamp(2.25rem, 5vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+    color: var(--fg);
+  }
+  .ph-intro {
+    margin: 0;
+    max-width: 38em;
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    color: var(--muted);
+  }
+  .ph-meta {
+    margin: 0.25rem 0 0;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  @media (max-width: 640px) {
+    .ph {
+      padding: 7rem 1.25rem 2.5rem;
+    }
+  }
+</style>

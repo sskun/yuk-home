@@ -1,5 +1,6 @@
 ---
 import type { ToolItem } from '../config/schema';
+import Icon from './ui/Icon.astro';
 
 // 工具列表页专用组件：简单竖向列表，每行一个工具。
 // ready 工具可点击，wip 工具置灰 + "规划中" 标签。
@@ -35,7 +36,7 @@ function isExternal(item: ToolItem): boolean {
           data-animate
           style={`--animate-delay:${animDelay}ms`}
         >
-          <span class="tool-icon" aria-hidden="true">{item.icon}</span>
+          <span class="tool-icon" aria-hidden="true"><Icon name={item.icon} size={22} /></span>
           <div class="tool-body">
             <div class="tool-header">
               <span class="tool-name">{item.title}</span>
@@ -56,7 +57,7 @@ function isExternal(item: ToolItem): boolean {
             target={isExternal(item) ? '_blank' : undefined}
             rel={isExternal(item) ? 'noopener noreferrer' : undefined}
           >
-            <span class="tool-icon" aria-hidden="true">{item.icon}</span>
+            <span class="tool-icon" aria-hidden="true"><Icon name={item.icon} size={22} /></span>
             <div class="tool-body">
               <div class="tool-header">
                 <span class="tool-name">{item.title}</span>
@@ -112,17 +113,16 @@ function isExternal(item: ToolItem): boolean {
     display: flex;
     align-items: center;
     gap: 1.25rem;
-    padding: 1.25rem 0.5rem;
+    padding: 1.5rem 1rem;
+    margin: 0 -1rem;
     text-decoration: none;
     color: inherit;
-    border-radius: var(--radius);
-    transition: background 0.18s var(--ease-out), padding-left 0.18s var(--ease-out);
+    border-radius: var(--radius-lg);
+    transition: background-color 0.2s var(--ease-out);
     outline-offset: 4px;
   }
-
   .tool-link:hover {
-    background: var(--surface-2);
-    padding-left: 1rem;
+    background: var(--bg-elev);
   }
 
   .tool-link:hover .arrow {
@@ -142,11 +142,19 @@ function isExternal(item: ToolItem): boolean {
 
   /* ---- icon ---- */
   .tool-icon {
-    font-size: 1.75rem;
-    line-height: 1;
+    display: grid;
+    place-items: center;
     flex-shrink: 0;
-    width: 2.5rem;
-    text-align: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 14px;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #fff;
+    background: linear-gradient(145deg, var(--grad-a), var(--grad-b));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      0 8px 18px -8px color-mix(in srgb, var(--grad-a) 70%, transparent);
   }
 
   /* ---- 文字区 ---- */
@@ -234,8 +242,9 @@ function isExternal(item: ToolItem): boolean {
     }
 
     .tool-icon {
-      font-size: 1.5rem;
-      width: 2rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 12px;
     }
 
     .tool-name {

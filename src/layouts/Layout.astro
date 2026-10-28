@@ -41,12 +41,12 @@ const themeVars = `--color-primary:${theme.primaryColor};--color-accent:${theme.
     {author && <meta name="author" content={author} />}
     {favicon && <link rel="icon" href={favicon} />}
 
-    {/* 字体：IBM Plex Sans（正文）+ JetBrains Mono（标签/代码），preconnect 降低阻塞、swap 避免 FOIT */}
+    {/* 字体：Inter（拉丁正文/标题）+ JetBrains Mono（标签/代码）；中文回落系统苹方/思源黑体。preconnect 降低阻塞、swap 避免 FOIT */}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
     />
 
     {/* OpenGraph 社交分享元信息 */}
@@ -58,7 +58,7 @@ const themeVars = `--color-primary:${theme.primaryColor};--color-accent:${theme.
     {/* 供具体页面注入额外的 head 内容（如文章页的 JSON-LD、canonical、文章级 og 标签） */}
     <slot name="head" />
   </head>
-  <body>
+  <body id="top">
     {nav && <Nav nav={nav} />}
     <slot />
   </body>
@@ -67,89 +67,84 @@ const themeVars = `--color-primary:${theme.primaryColor};--color-accent:${theme.
 {/* 全局基础样式：设计令牌、排版与 data-animate 动画契约。data-animate 是跨组件契约，必须全局。 */}
 <style is:global>
   :root {
-    /* 简约白色基调 - 现代 SaaS 风格 */
-    --bg: #ffffff;
-    --bg-elev: #f8fafc;
-    --fg: #1e293b;
-    --muted: #64748b;
-    --muted-strong: #475569;
+    /* 中性色：zinc 灰阶，冷静克制，让强调色和内容成为焦点 */
+    --bg: #fcfcfd;
+    --bg-elev: #f6f6f8;
+    --fg: #0b0b0f;
+    --fg-soft: #27272a;
+    --muted: #63636e;
+    --muted-strong: #3f3f46;
     --surface: #ffffff;
-    --surface-2: #f1f5f9;
-    --border: #e2e8f0;
-    --border-strong: #cbd5e1;
-    --max-width: 1080px;
+    --surface-2: #f4f4f5;
+    --border: #e7e7ea;
+    --border-strong: #d4d4d8;
+    /* 强调色梯度：靛蓝 → 紫 → 青，用于渐变文字、光晕与封面 */
+    --grad-a: #6366f1;
+    --grad-b: #a855f7;
+    --grad-c: #06b6d4;
+    --grad-brand: linear-gradient(120deg, var(--grad-a) 0%, var(--grad-b) 55%, var(--grad-c) 100%);
+    /* 阴影层级：同一套光源，按 elevation 递增 */
+    --shadow-xs: 0 1px 2px rgba(16, 16, 24, 0.05);
+    --shadow-sm: 0 1px 2px rgba(16, 16, 24, 0.04), 0 2px 6px rgba(16, 16, 24, 0.04);
+    --shadow-md: 0 2px 4px rgba(16, 16, 24, 0.04), 0 8px 24px rgba(16, 16, 24, 0.06);
+    --shadow-lg: 0 4px 8px rgba(16, 16, 24, 0.04), 0 24px 48px -12px rgba(16, 16, 24, 0.14);
+    --max-width: 1120px;
     --radius: 12px;
-    --radius-lg: 16px;
-    --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC',
+      'Microsoft YaHei', system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
     /* 缓动 */
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   }
-
   * {
     box-sizing: border-box;
   }
-
   html {
     scroll-behavior: smooth;
+    /* 锚点跳转时为固定导航栏留出空间 */
+    scroll-padding-top: 5rem;
   }
-
   body {
     margin: 0;
     background: var(--bg);
     color: var(--fg);
     font-family: var(--font-sans);
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
     line-height: 1.65;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
-
   a {
     color: inherit;
   }
-
   ::selection {
-    background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+    background: color-mix(in srgb, var(--color-accent) 22%, transparent);
     color: var(--fg);
   }
-
-  /* 细化滚动条，贴合深色主题 */
+  /* 细滚动条 */
   * {
     scrollbar-width: thin;
     scrollbar-color: var(--border-strong) transparent;
-  }
-  *::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-  *::-webkit-scrollbar-thumb {
-    background: var(--border-strong);
-    border-radius: 999px;
-    border: 3px solid transparent;
-    background-clip: padding-box;
-  }
-  /* 简洁滚动条 - 白色主题适配 */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-strong) var(--bg-elev);
   }
   *::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
   *::-webkit-scrollbar-track {
-    background: var(--bg-elev);
+    background: transparent;
   }
   *::-webkit-scrollbar-thumb {
     background: var(--border-strong);
     border-radius: 999px;
-    border: 2px solid var(--bg-elev);
+    border: 2px solid var(--bg);
     background-clip: padding-box;
   }
   *::-webkit-scrollbar-thumb:hover {
-    background: var(--muted-strong);
+    background: var(--muted);
   }
-
   /* 键盘可达：所有可聚焦元素统一焦点环 */
   :focus-visible {
     outline: 2px solid var(--color-accent);

@@ -41,6 +41,8 @@ export interface ArticleIndexMeta {
   heading: string;
   /** 副标题/引言（可选） */
   intro?: string;
+  /** 页头眉标（可选） */
+  eyebrow?: string;
 }
 
 /** 工具列表页（/tools）的可见文案 */
@@ -53,6 +55,8 @@ export interface ToolIndexMeta {
   heading: string;
   /** 副标题/引言（可选） */
   intro?: string;
+  /** 页头眉标（可选） */
+  eyebrow?: string;
   /**
    * Bento 网格右侧亮点/隐私说明卡片（可选，建议 ≤ 3 项）。
    * 缺省时组件回落到内置默认文案，保持“零上传 / 无需注册”等站点承诺。
@@ -60,6 +64,8 @@ export interface ToolIndexMeta {
   highlights?: ToolHighlight[];
   /** 工具列表（直接在此维护，不依赖首页 tool-grid 区块）*/
   items?: ToolItem[];
+  /** 网格末尾的"更多工具开发中"占位卡片（可选） */
+  comingSoon?: { title: string; description: string };
 }
 
 /** 工具列表页侧栏亮点条目 */
@@ -89,7 +95,7 @@ export interface ThemeConfig {
 
 // ============ 区块（可辨识联合） ============
 
-export type SectionType = 'hero' | 'feature' | 'showcase' | 'tool-grid' | 'footer';
+export type SectionType = 'hero' | 'feature' | 'showcase' | 'tool-grid' | 'articles' | 'contact' | 'footer';
 
 /** 所有区块共有的基础字段 */
 export interface SectionBase {
@@ -98,6 +104,8 @@ export interface SectionBase {
   type: SectionType;
   /** 该区块是否启用动画，缺省时继承全局开关 */
   animate?: boolean;
+  /** 区块眉标（等宽小字，如 "01 · Projects"），可选 */
+  eyebrow?: string;
 }
 
 /** 首屏主视觉区块 */
@@ -107,6 +115,33 @@ export interface HeroSection extends SectionBase {
   subheadline: string;
   ctas: CallToAction[];
   backgroundEffect?: BgEffect;
+  /** 主标题上方的问候语，如 "你好，我是 yukun" */
+  greeting?: string;
+  /** 状态胶囊文案（带呼吸绿点），如 "正在构建 · 欢迎交流" */
+  status?: string;
+  /** 社交链接（图标按钮），icon 为站点图标名 */
+  socials?: SocialLink[];
+  /** 右侧代码卡片：以 TS 对象字面量的形式展示个人档案 */
+  profile?: HeroProfile;
+}
+
+/** 社交/联系链接 */
+export interface SocialLink {
+  label: string;
+  href: string;
+  /** 站点图标名（见 components/ui/site-icons.ts），如 github / mail / rss */
+  icon: string;
+  external?: boolean;
+}
+
+/** Hero 右侧代码卡片的数据 */
+export interface HeroProfile {
+  /** 窗口标题栏里的文件名，如 profile.ts */
+  filename: string;
+  /** 对象变量名，如 yukun */
+  variable: string;
+  /** 键值对；值为数组时渲染为字符串数组字面量 */
+  entries: { key: string; value: string | string[] }[];
 }
 
 /** 特性介绍区块 */
@@ -121,7 +156,27 @@ export interface FeatureSection extends SectionBase {
 export interface ShowcaseSection extends SectionBase {
   type: 'showcase';
   heading: string;
+  intro?: string;
   items: ShowcaseItem[];
+}
+
+/** 最新文章区块：构建期从 article 集合读取，按发布时间倒序取前 limit 篇 */
+export interface ArticlesSection extends SectionBase {
+  type: 'articles';
+  heading: string;
+  intro?: string;
+  /** 展示篇数，缺省 3 */
+  limit?: number;
+  /** 右上角"查看全部"链接 */
+  more?: LinkItem;
+}
+
+/** 联系区块：深色收尾面板，引导读者联系或关注 */
+export interface ContactSection extends SectionBase {
+  type: 'contact';
+  heading: string;
+  intro?: string;
+  ctas: CallToAction[];
 }
 
 /** 工具入口区块：首页顶部一组工具卡片，跳转 /tools/{slug} */
@@ -137,9 +192,18 @@ export interface FooterSection extends SectionBase {
   type: 'footer';
   copyright: string;
   links: LinkItem[];
+  /** 品牌名下方的一句话介绍 */
+  tagline?: string;
 }
 
-export type Section = HeroSection | FeatureSection | ShowcaseSection | ToolGridSection | FooterSection;
+export type Section =
+  | HeroSection
+  | FeatureSection
+  | ShowcaseSection
+  | ToolGridSection
+  | ArticlesSection
+  | ContactSection
+  | FooterSection;
 
 // ============ 复用子类型 ============
 
@@ -151,9 +215,12 @@ export interface CallToAction {
 }
 
 export interface FeatureItem {
+  /** 站点图标名（见 components/ui/site-icons.ts）；非图标名时按文本原样渲染 */
   icon?: string;
   title: string;
   description: string;
+  /** 技术标签，渲染为胶囊 */
+  tags?: string[];
 }
 
 export interface ShowcaseItem {
@@ -162,6 +229,14 @@ export interface ShowcaseItem {
   href: string;
   thumbnail?: string;
   tags?: string[];
+  /** 封面图标名（见 components/ui/site-icons.ts），无 thumbnail 时用于生成封面 */
+  icon?: string;
+  /** 封面上的一行短标注，如 "Live" / "开源" */
+  badge?: string;
+  /** 项目 logo 图片路径（如 /projects/x.png），优先于 icon 显示在封面中央 */
+  logo?: string;
+  /** 封面主题色（两段渐变），缺省按序号轮换 */
+  accent?: [string, string];
   /** 是否外链（新窗口打开并带 rel="noopener noreferrer"） */
   external?: boolean;
 }
@@ -183,6 +258,8 @@ export interface ToolItem {
   tags?: string[];
   /** 工具状态：ready 默认；wip 时卡片置灰且不可点击 */
   status?: 'ready' | 'wip';
+  /** 卡片主题色（两段渐变），缺省按序号轮换站点色板 */
+  accent?: [string, string];
   /** 覆盖默认 /tools/{slug} 链接（极少使用，例如指向外链 demo） */
   external?: boolean;
   href?: string;
@@ -207,7 +284,7 @@ export class ConfigError extends Error {
  */
 export function validateConfig(raw: unknown): SiteConfig {
   const errors: string[] = [];
-  const KNOWN_TYPES: SectionType[] = ['hero', 'feature', 'showcase', 'tool-grid', 'footer'];
+  const KNOWN_TYPES: SectionType[] = ['hero', 'feature', 'showcase', 'tool-grid', 'articles', 'contact', 'footer'];
 
   if (raw === null || typeof raw !== 'object') {
     throw new ConfigError('配置必须是一个对象（site.config.ts 未正确导出）');
@@ -347,6 +424,53 @@ function validateSectionByType(s: Record<string, unknown>, path: string): string
       } else {
         (s.ctas as unknown[]).forEach((c, j) => {
           const cta = c as Record<string, unknown>;
+          if (!isNonEmptyString(cta.label)) errs.push(`${path}.ctas[${j}].label: 不能为空`);
+          if (!isNonEmptyString(cta.href)) errs.push(`${path}.ctas[${j}].href: 不能为空`);
+        });
+      }
+      if (s.socials !== undefined) {
+        if (!Array.isArray(s.socials)) {
+          errs.push(`${path}.socials: 必须为数组`);
+        } else {
+          (s.socials as unknown[]).forEach((l, j) => {
+            const link = (l ?? {}) as Record<string, unknown>;
+            if (!isNonEmptyString(link.label)) errs.push(`${path}.socials[${j}].label: 不能为空`);
+            if (!isNonEmptyString(link.href)) errs.push(`${path}.socials[${j}].href: 不能为空`);
+            if (!isNonEmptyString(link.icon)) errs.push(`${path}.socials[${j}].icon: 不能为空`);
+          });
+        }
+      }
+      if (s.profile !== undefined) {
+        const pf = s.profile as Record<string, unknown> | null;
+        if (!pf || typeof pf !== 'object') {
+          errs.push(`${path}.profile: 必须为对象`);
+        } else {
+          if (!isNonEmptyString(pf.filename)) errs.push(`${path}.profile.filename: 不能为空`);
+          if (!isNonEmptyString(pf.variable)) errs.push(`${path}.profile.variable: 不能为空`);
+          if (!Array.isArray(pf.entries)) errs.push(`${path}.profile.entries: 必须为数组`);
+        }
+      }
+      break;
+    }
+    case 'articles': {
+      if (!isNonEmptyString(s.heading)) errs.push(`${path}.heading: 不能为空`);
+      if (s.limit !== undefined && (!Number.isInteger(s.limit) || (s.limit as number) < 1)) {
+        errs.push(`${path}.limit: 必须为正整数`);
+      }
+      if (s.more !== undefined) {
+        const more = (s.more ?? {}) as Record<string, unknown>;
+        if (!isNonEmptyString(more.label)) errs.push(`${path}.more.label: 不能为空`);
+        if (!isNonEmptyString(more.href)) errs.push(`${path}.more.href: 不能为空`);
+      }
+      break;
+    }
+    case 'contact': {
+      if (!isNonEmptyString(s.heading)) errs.push(`${path}.heading: 不能为空`);
+      if (!Array.isArray(s.ctas)) {
+        errs.push(`${path}.ctas: 必须为数组`);
+      } else {
+        (s.ctas as unknown[]).forEach((c, j) => {
+          const cta = (c ?? {}) as Record<string, unknown>;
           if (!isNonEmptyString(cta.label)) errs.push(`${path}.ctas[${j}].label: 不能为空`);
           if (!isNonEmptyString(cta.href)) errs.push(`${path}.ctas[${j}].href: 不能为空`);
         });

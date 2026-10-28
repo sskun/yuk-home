@@ -29,6 +29,11 @@ async function encodeWithOffscreen(bitmap: ImageBitmap, mime: string, quality: n
   const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('worker: 无法获取 OffscreenCanvas 2d context');
+  // JPEG 不支持透明，未铺底时透明像素会变成黑色
+  if (mime === 'image/jpeg') {
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
   ctx.drawImage(bitmap, 0, 0);
   return canvas.convertToBlob({ type: mime, quality });
 }

@@ -18,7 +18,7 @@ const config = validateConfig(rawConfig);
   theme={config.theme}
   nav={config.nav}
 >
-  {config.sections.map((section, i) => <SectionRenderer section={section} index={i} theme={config.theme} />)}
+  {config.sections.map((section, i) => <SectionRenderer section={section} index={i} theme={config.theme} lang={config.site.lang} />)}
 </Layout>
 
 <script>
