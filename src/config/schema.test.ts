@@ -313,23 +313,52 @@ describe('validateConfig - articles / contact 区块', () => {
 });
 
 describe('validateConfig - hero 扩展字段', () => {
-  it('合法 socials 与 profile 应通过', () => {
+  it('合法 socials、stats 与 stage 应通过', () => {
     const cfg = makeValidConfig();
     Object.assign(cfg.sections[0], {
       socials: [{ label: 'GitHub', href: 'https://github.com', icon: 'github', external: true }],
-      profile: { filename: 'about.ts', variable: 'me', entries: [{ key: 'role', value: 'dev' }] },
+      stats: [{ value: 3, label: '作品' }, { value: 'articles', label: '文章' }],
+      stage: { address: 'npx x', product: { name: 'X', tagline: 't', href: '/x' } },
     });
     expect(validateConfig(cfg)).toBe(cfg);
+  });
+  it('stats.value 非数字且非 articles 应报错', () => {
+    const cfg = makeValidConfig();
+    Object.assign(cfg.sections[0], { stats: [{ value: 'abc', label: '作品' }] });
+    expect(() => validateConfig(cfg)).toThrow(/sections\[0\]\.stats\[0\]\.value/);
+  });
+  it('stage 缺 product.href 应报错', () => {
+    const cfg = makeValidConfig();
+    Object.assign(cfg.sections[0], { stage: { address: 'a', product: { name: 'X', tagline: '', href: '' } } });
+    expect(() => validateConfig(cfg)).toThrow(/sections\[0\]\.stage\.product\.href/);
   });
   it('socials 项缺 icon 应报错并含索引路径', () => {
     const cfg = makeValidConfig();
     Object.assign(cfg.sections[0], { socials: [{ label: 'GitHub', href: 'https://github.com', icon: '' }] });
     expect(() => validateConfig(cfg)).toThrow(/sections\[0\]\.socials\[0\]\.icon/);
   });
-  it('profile.entries 非数组应报错', () => {
+});
+
+describe('validateConfig - pillars / timeline 区块', () => {
+  it('合法 pillars 与 timeline 应通过', () => {
     const cfg = makeValidConfig();
-    Object.assign(cfg.sections[0], { profile: { filename: 'a.ts', variable: 'me', entries: 'x' } });
-    expect(() => validateConfig(cfg)).toThrow(/sections\[0\]\.profile\.entries/);
+    cfg.sections.splice(
+      1,
+      0,
+      { id: 'pillars', type: 'pillars', heading: '能力', items: [{ title: '产品力', metric: '3', metricLabel: '作品', description: 'd' }] },
+      { id: 'timeline', type: 'timeline', heading: '经历', items: [{ period: '2026', title: 't', description: 'd' }] },
+    );
+    expect(validateConfig(cfg)).toBe(cfg);
+  });
+  it('pillars 缺 metric、timeline 缺 period 应报错', () => {
+    const cfg = makeValidConfig();
+    cfg.sections.splice(
+      1,
+      0,
+      { id: 'pillars', type: 'pillars', heading: '能力', items: [{ title: '产品力', metric: '', metricLabel: '', description: 'd' }] },
+      { id: 'timeline', type: 'timeline', heading: '经历', items: [{ period: '', title: 't', description: 'd' }] },
+    );
+    expect(() => validateConfig(cfg)).toThrow(/sections\[1\]\.items\[0\]\.metric[\s\S]*sections\[2\]\.items\[0\]\.period/);
   });
 });
 

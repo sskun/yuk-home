@@ -6,6 +6,8 @@ import ShowcaseSection from './ShowcaseSection.astro';
 import ToolGridSection from './ToolGridSection.astro';
 import ArticlesSection from './ArticlesSection.astro';
 import ContactSection from './ContactSection.astro';
+import PillarsSection from './PillarsSection.astro';
+import TimelineSection from './TimelineSection.astro';
 import FooterSection from './FooterSection.astro';
 
 // 区块分发器：按 section.type 分发到对应组件；未知类型安全跳过并告警。
@@ -35,6 +37,10 @@ const delay = animateOn && index > 0 ? Math.min(theme.animationBaseDelay, 120) :
     <ToolGridSection data={section} delay={delay} />
   ) : section.type === 'articles' ? (
     <ArticlesSection data={section} delay={delay} lang={lang} />
+  ) : section.type === 'pillars' ? (
+    <PillarsSection data={section} delay={delay} />
+  ) : section.type === 'timeline' ? (
+    <TimelineSection data={section} delay={delay} />
   ) : section.type === 'contact' ? (
     <ContactSection data={section} delay={delay} />
   ) : section.type === 'footer' ? (

@@ -1,0 +1,45 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+// 配置里的图片统一走这里：
+// - 写 /src/assets/xxx.png → 构建期由 astro:assets 转 WebP、按 widths 生成多尺寸 srcset、自动带宽高
+// - 写 /xxx.png（public 目录）或 https://... → 原样输出 <img>
+// 这样配置文件只需要写字符串路径，不必在 .ts 里 import 图片。
+interface Props {
+  src: string;
+  alt: string;
+  /** 生成的宽度档位（仅 /src/assets 图片生效） */
+  widths?: number[];
+  sizes?: string;
+  class?: string;
+  loading?: 'lazy' | 'eager';
+  fetchpriority?: 'high' | 'low' | 'auto';
+}
+const { src, alt, widths, sizes, class: className, loading = 'lazy', fetchpriority } = Astro.props;
+
+const assets = import.meta.glob<{ default: ImageMetadata }>('/src/assets/**/*.{png,jpg,jpeg,webp,avif,gif}', {
+  eager: true,
+});
+const local = assets[src]?.default;
+if (src.startsWith('/src/assets/') && !local) {
+  throw new Error(`[SmartImage] 找不到图片：${src}（检查文件名和扩展名）`);
+}
+---
+
+{
+  local ? (
+    <Image
+      src={local}
+      alt={alt}
+      widths={widths}
+      sizes={sizes}
+      class={className}
+      loading={loading}
+      fetchpriority={fetchpriority}
+      format="webp"
+    />
+  ) : (
+    <img src={src} alt={alt} class={className} loading={loading} decoding="async" fetchpriority={fetchpriority} />
+  )
+}
