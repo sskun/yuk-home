@@ -1,0 +1,436 @@
+src/content/projects/tracemine.md
+  s_6361e85984902d::t_92eb04df9cb74c 1-30
+README.md
+  s_6361e85984902d::t_c27df35bad628f 49-54
+  s_6361e85984902d::t_6ffc9562187182 9-14,20,22-25,28,30,32-37,39-41,43-48,60-76,83-84,86,88,90
+src/content/feed/2026-10-29-0920-local-gateway.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-9
+src/components/starwind/alert/AlertTitle.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-13
+src/lib/search/bm25.ts
+  s_6361e85984902d::t_ebfb86a7ebf973 1-2,4-66,68-106
+  s_6361e85984902d::t_e0960183b923c1 3,67
+docs/2026-10-29-个人网站v5改版-组件方案验证.md
+  s_6361e85984902d::t_ce25f12358350e 1-116
+src/components/starwind/alert/index.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-20
+src/content/feed/2026-10-29-1105-multi-repo-index.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-10
+src/content.config.ts
+  s_6361e85984902d::t_284e9ce1970dde 1-3,7,9,14,23-31,35-43,45-65,67-118
+  s_6361e85984902d::t_25f1ae06ae906e 4-5
+src/scripts/lifecycle.ts
+  s_6361e85984902d::t_f27a38902c856d 1-25
+src/content/tools/fzf.md
+  s_6361e85984902d::t_ec96bd4524ff6a 1-14
+src/components/starwind/toggle-group/ToggleGroupItem.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-39
+src/components/starwind/toast/ToastDescription.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-17
+src/components/starwind/toast/ToastTemplate.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-75
+src/content/tools/llama-cpp.md
+  s_6361e85984902d::t_ec96bd4524ff6a 1-14
+src/scripts/search-ui.ts
+  s_6361e85984902d::t_734480ea804eda 1-187,189-253
+  s_6361e85984902d::t_2ccc1949e83230 188
+src/consts.ts
+  s_6361e85984902d::t_152e95f315ec18 1-4,15-16,20-25,27,29-76
+  s_6361e85984902d::t_126923ce81539e 5-14,17-19,26,28
+src/components/starwind/kbd/index.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-17
+src/components/starwind/toast/ToastClose.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-22
+src/content/feed/2026-10-29-0815-tracemine.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-10
+src/pages/index.astro
+  s_6361e85984902d::t_2ccc1949e83230 56
+  s_6361e85984902d::t_126923ce81539e 36
+  s_6361e85984902d::t_782667a49ea377 2-11,13-35,37-38,41-55,57-153
+src/content/projects/upwind.md
+  s_6361e85984902d::t_126923ce81539e 1-34
+src/components/starwind/kbd/KbdGroup.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-13
+src/components/starwind/toast/ToastAction.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-13
+src/components/starwind/dropzone/DropzoneUploadIndicator.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-25
+src/components/starwind/tabs/TabsTrigger.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-22
+src/styles/starwind.css
+  s_6361e85984902d::t_ee983b1d2679e1 3-5,80-107,109-116,125
+  s_6361e85984902d::t_00ef3febc849d7 1-2,7,9-11,13-18,21-22,24,27,30-79,108,117-122,124,127-128,130
+src/components/starwind/button/variants.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-37
+src/scripts/list-filter.ts
+  s_6361e85984902d::t_41086f0f49fc0f 1-22,25-46,48-74,76-80,82-102,104-181,184,186-226,229-259,261-264
+  s_6361e85984902d::t_c25e86925d74d9 182-183
+src/content/tools/aider.md
+  s_6361e85984902d::t_ec96bd4524ff6a 1-15
+src/components/starwind/dropzone/Dropzone.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-41
+src/components/starwind/progress/Progress.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-51
+src/components/starwind/toggle/Toggle.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-44
+src/styles/tokens.css
+  s_6361e85984902d::t_73430fd79fbed6 1-69
+src/components/site/SearchDialog.astro
+  s_6361e85984902d::t_3ef6ecbb31309b 2-3,5-9,11-15
+src/content/feed/2026-10-29-1440-long-context-bench.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-9
+src/pages/tools/image-governance.astro
+  s_6361e85984902d::t_491a69ba097f3d 2-12,15-28,32-36
+src/components/starwind/alert/variants.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-27
+src/components/starwind/table/TableBody.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-13
+src/components/starwind/table/TableFoot.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-13
+src/components/starwind/toggle-group/index.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-17
+src/components/starwind/toggle/variants.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-28
+src/lib/text.ts
+  s_6361e85984902d::t_e5fc22ff46a3b6 1-26,28-34,36-52
+src/content/feed/2026-10-26-1530-eval-drift.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-9
+src/content/feed/2026-10-28-1002-browser-image.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-9
+src/content/feed/2026-10-28-1705-small-model-code.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-9
+src/components/content/RelCount.astro
+  s_6361e85984902d::t_e538a2cd43e5ba 1-12
+src/content/feed/2026-10-26-1100-ci-image.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-9
+src/content/feed/2026-10-29-1610-context-war.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-11
+docs/2026-10-29-个人网站v5改版-落地方案.md
+  s_6361e85984902d::t_3c2f6927e1f7b1 1-4,6,8,12-19,26-29,31-33,36-37,42-44,46-49,51-55,57-59,62,64-68,87-94,97-100,102,104-106,112-118,120-122,124-127,132,137,146-147,151-152,154,156,204,206,208,222-225,227,229,232,235,237,239,241,243,245,247,264,266,271,273,277,279,281,283,291,293,313-316,325-328,337,339,341-345,355-357,365,374-378
+  s_6361e85984902d::t_2e6a74083a6ccd 5,7,9-11,20-25,30,34-35,38-41,45,50,56,60-61,63,69-86,95-96,101,103,107-111,119,123,128-131,133-136,138-145,148-150,153,155,157-203,205,207,209-221,226,228,230-231,233-234,236,238,240,242,244,246,248-263,265,267-270,272,274-276,278,280,282,284-290,292,294-312,317-324,329-336,338,340,346-354,358-364,366-373,379-386
+  s_6361e85984902d::t_fccfc608c276a5 387-421
+src/pages/search-index.json.ts
+  s_6361e85984902d::t_6e480451e5f699 1-6,8-10,12-22,24-37,39-48,50-61,63-66,68
+src/content/article/terminal-session-index.md
+  s_6361e85984902d::t_c5df6bf44be675 1-24
+src/content/feed/2026-10-28-2130-session-search.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-10
+src/components/starwind/table/index.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-54
+src/components/site/FindBar.astro
+  s_6361e85984902d::t_3ef6ecbb31309b 1-12
+src/content/projects/color-picker.md
+  s_6361e85984902d::t_92eb04df9cb74c 1-10
+src/lib/stats.ts
+  s_6361e85984902d::t_3ee64a69f3191b 1-116
+src/components/starwind/toggle-group/ToggleGroup.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-51
+src/pages/robots.txt.ts
+  s_6361e85984902d::t_3aab89f8e9bf79 1-6
+astro.config.mjs
+  s_6361e85984902d::t_c74cb45dc5dc4e 9,13,16,24
+  s_6361e85984902d::t_a40792ec69c488 3,33-34,40
+src/lib/stats.test.ts
+  s_6361e85984902d::t_db4e148660f4ad 1-3,5,7-15,17-44
+src/content/tools/lm-studio.md
+  s_6361e85984902d::t_ec96bd4524ff6a 1-14
+src/components/starwind/toast/ToastTitle.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-57
+src/content/projects/logpeek.md
+  s_6361e85984902d::t_92eb04df9cb74c 1-10
+src/styles/site.css
+  s_6361e85984902d::t_10f2436f761d4f 1146-1148
+  s_6361e85984902d::t_5b3399d6acb1b4 1-88,96-111,113,117,120,122,139-219,221-222,224-225,227-295,297-314,316-346,348-411,413-502,504-519,521-596,598-672,674-680,684-774,776-807,813-840,845-886,888-938,940-963,965-1049,1051-1102,1104-1105,1107,1109-1131,1133-1139,1159-1374,1377-1378,1380-1381,1383-1462,1464-1486,1488-1521,1523-1540,1542-1618,1629-1668,1670-1694,1696-1699,1701-1754,1765-1827,1829-2096,2098-2121,2134-2304,2306-2328,2330-2335,2337-2339,2341-2343,2345-2346,2348-2361,2363-2364,2366-2368,2370-2372,2374-2375,2377-2380,2382-2384,2386-2392,2394-2395,2397-2400,2402-2403,2406,2408-2410,2418-2419,2421-2422,2424-2425,2427-2428,2430-2431,2433-2434,2436-2437,2439,2442-2475,2477,2479-2486,2488
+  s_6361e85984902d::t_bf57a634adf50a 808-812,2405
+  s_6361e85984902d::t_20113b87b323ce 841-844
+  s_6361e85984902d::t_3a1cbf32f821ac 2129-2130,2412-2416
+  s_6361e85984902d::t_fda0366e364a0e 112,114-116,118-119,121,123-138
+  s_6361e85984902d::t_394118302b9325 91-94,1619-1627
+  s_6361e85984902d::t_0bf6386db52e98 1375-1376,1379,1382
+  s_6361e85984902d::t_1c4314aa49ea31 681-683
+src/scripts/dialogs.ts
+  s_6361e85984902d::t_a14812e0ab66bb 1-47
+src/components/starwind/tabs/variants.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-24
+src/pages/feed/index.astro
+  s_6361e85984902d::t_8bfc121d0be2f6 1-113
+src/content/feed/2026-10-28-0840-cli-agents.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-9
+src/components/site/Icon.astro
+  s_6361e85984902d::t_3ef6ecbb31309b 2,4,8-19,21
+src/layouts/Base.astro
+  s_6361e85984902d::t_e0960183b923c1 47,49
+  s_6361e85984902d::t_126923ce81539e 35,61,63
+  s_6361e85984902d::t_3c431c82f5ebd3 2-4,6-10,13-22,25-28,30-34,36-38,42,51,53-56,62,64,67-68,70-71,74,76-90
+  s_6361e85984902d::t_c74cb45dc5dc4e 72
+src/components/starwind/tooltip/variants.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-32
+src/components/starwind/alert/AlertDescription.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-18
+src/components/starwind/tabs/index.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-23
+src/components/starwind/table/TableCaption.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-13
+src/content/projects/mdtoc.md
+  s_6361e85984902d::t_92eb04df9cb74c 1-10
+src/components/starwind/table/TableHeader.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-13
+src/components/starwind/table/TableHead.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-13
+tsconfig.json
+  s_6361e85984902d::t_00ef3febc849d7 3-17
+src/components/starwind/button/Button.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-52
+src/components/starwind/kbd/Kbd.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-13
+src/components/starwind/label/index.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-10
+src/components/starwind/table/variants.ts
+  s_6361e85984902d::t_20113b87b323ce 3-4,6,10,18,22,26,30,34
+  s_6361e85984902d::t_75d9beb3b22015 1-2,5,7-9,11-17,19-21,23-25,27-29,31-33,35
+src/lib/date.ts
+  s_6361e85984902d::t_951d450fb46bed 1-74
+src/components/tools/ImageGovernance.ts
+  s_6361e85984902d::t_c74cb45dc5dc4e 569
+  s_6361e85984902d::t_c6ff9e8bdd9143 1-4,11,112-113,129,137-142,388,405-406,408-409,412,414-417,419-426,756,758-774,954,981-982,993-997
+src/content/tools/obsidian.md
+  s_6361e85984902d::t_ec96bd4524ff6a 1-14
+src/components/starwind/input/index.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-10
+src/components/site/SiteFooter.astro
+  s_6361e85984902d::t_126923ce81539e 7
+  s_6361e85984902d::t_3ef6ecbb31309b 1-6,8-10
+src/content/tools/sharp.md
+  s_6361e85984902d::t_ec96bd4524ff6a 1-14
+src/components/starwind/toast/styles.css
+  s_6361e85984902d::t_75d9beb3b22015 1-74
+src/components/content/ProjectBlock.astro
+  s_6361e85984902d::t_d8f54957fefd6f 1-45
+src/content/feed/2026-10-28-1210-mcp-standard.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-10
+src/components/starwind/table/TableRow.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-13
+src/content/article/local-first-ai-tools.md
+  s_6361e85984902d::t_c5df6bf44be675 1-76
+src/scripts/search-client.ts
+  s_6361e85984902d::t_7734acd81fd470 1-35
+src/components/content/FeedRow.astro
+  s_6361e85984902d::t_d8f54957fefd6f 2,4-9,11-32
+src/pages/projects/index.astro
+  s_6361e85984902d::t_5c653a94b15f78 1-9,11-14,16-26,28-59
+  s_6361e85984902d::t_22dd66a4ba3fce 10,15,27
+src/content/feed/2026-10-24-1410-agent-loop.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-9
+src/content/feed/2026-10-27-1944-copilot-to-agent.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-10
+src/content/tools/squoosh-cli.md
+  s_6361e85984902d::t_ec96bd4524ff6a 1-15
+src/pages/404.astro
+  s_6361e85984902d::t_3aab89f8e9bf79 1-22
+src/content/tools/upwind.md
+  s_6361e85984902d::t_126923ce81539e 1-15
+src/components/starwind/toast/ToastContent.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-17
+src/content/article/agent-architecture-three-axes.md
+  s_6361e85984902d::t_c5df6bf44be675 5
+src/scripts/reltime.ts
+  s_6361e85984902d::t_db992ef176b3ca 1-4,6-19,26,37-38
+  s_6361e85984902d::t_baaada22e4e6d2 5,20-25,27-36
+src/content/tools/zed.md
+  s_6361e85984902d::t_ec96bd4524ff6a 1-14
+src/content/article/context-is-not-size.md
+  s_6361e85984902d::t_c5df6bf44be675 1-22
+src/pages/rss.xml.ts
+  s_6361e85984902d::t_3aab89f8e9bf79 1-27
+src/components/starwind/table/Table.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-16
+src/components/site/MobileNav.astro
+  s_6361e85984902d::t_3ef6ecbb31309b 1-7,9-20
+  s_6361e85984902d::t_126923ce81539e 8
+src/components/starwind/slider/index.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-14
+src/components/starwind/dropzone/DropzoneLoadingIndicator.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-25
+src/components/starwind/dropzone/index.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-34
+src/content/feed/2026-10-27-1520-context-compress.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-10
+src/components/starwind/toggle-group/variants.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-38
+src/pages/article/[...slug].astro
+  s_6361e85984902d::t_126923ce81539e 82
+  s_6361e85984902d::t_7c66d3053c65cd 2-3,5-12,15-16,19-41,44-78,80-81,83-136
+e2e/site.spec.ts
+  s_6361e85984902d::t_1550bede4c821e 3-12,14-41,44-49,51-59,62,64-100,104-117,119-122,125-133,135-141
+  s_6361e85984902d::t_c74cb45dc5dc4e 42-43
+src/components/starwind/tooltip/TooltipContent.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-61
+src/content/projects/image-governance.md
+  s_6361e85984902d::t_92eb04df9cb74c 1-6,8-32
+  s_6361e85984902d::t_126923ce81539e 7
+src/content/article/browser-image-pipeline.md
+  s_6361e85984902d::t_c5df6bf44be675 2-7,10-14,16-23
+src/lib/text.test.ts
+  s_6361e85984902d::t_db4e148660f4ad 1-21
+src/pages/about.astro
+  s_6361e85984902d::t_fda0366e364a0e 25,27,35-40
+  s_6361e85984902d::t_ebfe0318265fe3 1-24,26,28,30-34,41-93
+src/components/starwind/toggle/index.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-10
+src/components/starwind/input/variants.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-22
+src/components/site/PageHead.astro
+  s_6361e85984902d::t_3ef6ecbb31309b 1-11
+src/pages/article/index.astro
+  s_6361e85984902d::t_dee5ee7f005b5d 2-12,14-25,27-36,38-45,47-57,59-62,64-89,92
+src/components/starwind/dropzone/DropzoneFilesList.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-17
+src/components/starwind/tooltip/index.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-21
+src/content/tools/ghostty.md
+  s_6361e85984902d::t_ec96bd4524ff6a 1-14
+src/content/feed/2026-10-25-1645-ide-sidebar.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-9
+src/components/starwind/toast/index.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-55
+src/components/starwind/toast/ToastItem.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-26
+src/components/starwind/tabs/TabsList.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-22
+src/content/tools/image-governance.md
+  s_6361e85984902d::t_ec96bd4524ff6a 1-14
+src/components/starwind/tabs/TabsContent.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-22
+package.json
+  s_6361e85984902d::t_5949718a213b18 17
+  s_6361e85984902d::t_00ef3febc849d7 18-19,22-25
+  s_6361e85984902d::t_c74cb45dc5dc4e 31
+src/content/tools/tracemine.md
+  s_6361e85984902d::t_ec96bd4524ff6a 1-15
+src/components/site/SiteHeader.astro
+  s_6361e85984902d::t_126923ce81539e 8
+  s_6361e85984902d::t_3ef6ecbb31309b 2,4,6-7,9-18
+src/components/content/Terminal.astro
+  s_6361e85984902d::t_0bf6386db52e98 7
+  s_6361e85984902d::t_d8f54957fefd6f 1-6,8
+src/components/starwind/toast/Toaster.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-212
+src/content/tools/ollama.md
+  s_6361e85984902d::t_ec96bd4524ff6a 1-14
+src/content/feed/2026-10-27-0935-rust-vector.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-9
+src/components/starwind/label/Label.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-15
+src/components/starwind/table/TableCell.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-13
+src/components/starwind/dropzone/variants.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-29
+src/components/starwind/badge/index.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-10
+src/components/starwind/badge/variants.ts
+  s_6361e85984902d::t_75d9beb3b22015 1,3-51,54-503,506-512
+src/components/starwind/tooltip/Tooltip.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-42
+src/components/starwind/progress/variants.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-38
+src/content/feed/2026-10-25-1020-static-search.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-10
+src/content/article/docs-harder-than-code.md
+  s_6361e85984902d::t_c5df6bf44be675 1-18
+src/lib/search/tokenize.ts
+  s_6361e85984902d::t_8b1e038e3b9ea9 43-45
+  s_6361e85984902d::t_e0960183b923c1 20-34
+  s_6361e85984902d::t_4879bb6d9606ba 1-17,36-42,46-48
+src/scripts/motion.ts
+  s_6361e85984902d::t_a4d3a2ede693d2 1-38,41-57,60-82,84-87,89-104,106-116,118-126
+src/content/article/stop-chasing-models.md
+  s_6361e85984902d::t_c5df6bf44be675 1-16
+src/components/site/Crumb.astro
+  s_6361e85984902d::t_3ef6ecbb31309b 1-13
+src/content/tools/meilisearch.md
+  s_6361e85984902d::t_ec96bd4524ff6a 1-14
+src/components/starwind/label/variants.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-18
+src/components/starwind/button/index.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-14
+src/lib/content.ts
+  s_6361e85984902d::t_49e56bc7fcb3ce 1-90,96-97
+  s_6361e85984902d::t_869f454c2cfdeb 91-95
+src/components/site/SideWidget.astro
+  s_6361e85984902d::t_3ef6ecbb31309b 1-8
+public/_headers
+  s_6361e85984902d::t_351a2826abba39 2-3,5,12
+src/components/starwind/badge/Badge.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-25
+starwind.config.json
+  s_6361e85984902d::t_75d9beb3b22015 9-100
+  s_6361e85984902d::t_00ef3febc849d7 1-8,101-108
+src/lib/search/search.test.ts
+  s_6361e85984902d::t_db4e148660f4ad 1-65
+src/content/tools/duckdb.md
+  s_6361e85984902d::t_ec96bd4524ff6a 1-14
+src/pages/tools/index.astro
+  s_6361e85984902d::t_03e776cc173e03 2-13,15-28,30-43,45-57,59-74,76-109,111-132,135-148
+src/components/content/ArticleCard.astro
+  s_6361e85984902d::t_d8f54957fefd6f 1-4,6-38
+  s_6361e85984902d::t_1c4314aa49ea31 5
+src/lib/search/highlight.ts
+  s_6361e85984902d::t_2dde4e569b452d 1-19
+src/content/article/astro-serverless-personal-site.md
+  s_6361e85984902d::t_c5df6bf44be675 5-6
+src/components/starwind/alert/Alert.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-22
+e2e/tools.spec.ts
+  s_6361e85984902d::t_1550bede4c821e 1-2,4-5,7-10,13-17,19,21,24,27-29,32-36,39-48,51-60,63-69,71-77,79,81-82,85-87,89-91,94,96-101,104-108
+src/scripts/mermaid.ts
+  s_6361e85984902d::t_f787cc1251c8e1 1-103
+src/components/starwind/input/Input.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-31
+src/components/starwind/toast/variants.ts
+  s_6361e85984902d::t_75d9beb3b22015 1,3-8,10-12,14-16,18-26,28-42,44-65
+  s_6361e85984902d::t_3f791f9ee7d5a5 27,43
+src/components/starwind/slider/Slider.astro
+  s_6361e85984902d::t_75d9beb3b22015 2-5,7-18,21-35,37-42,45-76,78-87,89-90
+src/styles/prose.css
+  s_6361e85984902d::t_e2b1380f3a9fdb 220-224
+  s_6361e85984902d::t_8f1c020b280a60 244-297
+  s_6361e85984902d::t_5045ddde0b8984 1-219,225-243
+src/components/starwind/slider/variants.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-56
+src/components/starwind/tooltip/TooltipTrigger.astro
+  s_6361e85984902d::t_75d9beb3b22015 1-23
+src/content/tools/ripgrep-all.md
+  s_6361e85984902d::t_ec96bd4524ff6a 1-14
+src/styles/image-tool.css
+  s_6361e85984902d::t_b65be380085807 1-825
+src/pages/sitemap.xml.ts
+  s_6361e85984902d::t_3aab89f8e9bf79 1-23
+src/components/starwind/kbd/variants.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-14
+src/components/starwind/tabs/Tabs.astro
+  s_6361e85984902d::t_75d9beb3b22015 2-4,6-10,13-21,23-33
+src/components/starwind/progress/index.ts
+  s_6361e85984902d::t_75d9beb3b22015 1-12
+src/content/feed/2026-10-26-2010-privacy-default.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-10
+src/styles/global.css
+  s_6361e85984902d::t_4b17777ff1bae3 1-8
+src/content/feed/2026-10-24-2200-quantize.md
+  s_6361e85984902d::t_fdbf464d8e0c40 1-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.51-trip",
+  "base_commit_sha": "0755bfe91beec10bf734a8e4a6b5e80d5e0bff20",
+  "prompts": {},
+  "sessions": {
+    "s_6361e85984902d": {
+      "agent_id": {
+        "tool": "kiro-desktop",
+        "id": "sess_d9e69fa8-03bf-490d-a9d2-8136385d6ac4",
+        "model": "claude-opus-5.5"
+      },
+      "human_author": "yukun <yukun@trip.com>"
+    }
+  }
+}
