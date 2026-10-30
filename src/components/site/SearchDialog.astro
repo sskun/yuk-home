@@ -1,0 +1,15 @@
+---
+// 全局检索浮层：原生 <dialog>，所有页面共用。交互在 src/scripts/search-ui.ts。
+import Icon from './Icon.astro';
+---
+<dialog class="sov" id="site-search" data-dialog aria-label="站内检索">
+  <div class="sov-head">
+    <Icon name="search" class="ic text-weak" />
+    <input type="search" placeholder="搜情报、工具、文章、项目" aria-label="站内检索" role="combobox" aria-expanded="true" aria-controls="sov-list" aria-autocomplete="list" autocomplete="off" spellcheck="false" />
+    <button type="button" class="esc" data-close aria-label="关闭">ESC</button>
+  </div>
+  <div class="sov-res" id="sov-list" role="listbox" aria-label="检索结果"></div>
+  <div class="sov-foot">
+    <span><kbd>↑↓</kbd> 选择</span><span><kbd>Enter</kbd> 打开</span><span><kbd>Esc</kbd> 关闭</span><span style="margin-left:auto" data-total></span>
+  </div>
+</dialog>

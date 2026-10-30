@@ -1,0 +1,12 @@
+---
+// 内页常驻检索栏：在当前列表里检索（type 对应索引里的 feed / tool），与 chips 叠加
+import Icon from './Icon.astro';
+interface Props { type: 'feed' | 'tool'; placeholder: string; label: string }
+const { type, placeholder, label } = Astro.props;
+---
+<form class="find" role="search" action="" onsubmit="return false">
+  <Icon name="search" class="ic" />
+  <input type="search" name="q" data-find={type} placeholder={placeholder} aria-label={label} autocomplete="off" spellcheck="false" />
+  <button class="go" type="submit">搜索</button>
+</form>
+<noscript><p class="noscript-tip">检索需要开启 JavaScript，下面的列表照常可以浏览。</p></noscript>

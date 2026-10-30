@@ -1,0 +1,92 @@
+---
+// 全站布局：<head>（SEO、og、canonical、JSON-LD）+ 顶栏 + 主体 + 页脚 + 全局检索浮层 + 移动端菜单。
+// 页面切换用 Astro ClientRouter（视图过渡 + 悬停预取），系统「减少动态效果」时自动退化为直接跳转。
+import { ClientRouter, fade } from 'astro:transitions';
+import '../styles/global.css';
+import { SITE } from '../consts';
+import SiteHeader from '../components/site/SiteHeader.astro';
+import SiteFooter from '../components/site/SiteFooter.astro';
+import SearchDialog from '../components/site/SearchDialog.astro';
+import MobileNav from '../components/site/MobileNav.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogType?: 'website' | 'article';
+  image?: string;
+  canonical?: string;
+  /** 页面渲染了 mock 内容时为 true：输出 noindex，避免虚构内容被收录 */
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  /** 主体容器类名，默认 wrap */
+  mainClass?: string;
+}
+
+const {
+  title,
+  description = SITE.description,
+  ogType = 'website',
+  image = '/og.png',
+  canonical,
+  noindex = false,
+  jsonLd,
+  mainClass = 'wrap',
+} = Astro.props;
+const fullTitle = title ? `${title} · ${SITE.brand} ${SITE.brandEn}` : SITE.title;
+const canonicalUrl = canonical ?? new URL(Astro.url.pathname, Astro.site ?? Astro.url).href;
+const ogImage = image ? new URL(image, Astro.site ?? Astro.url).href : undefined;
+const lds = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+---
+
+<!doctype html>
+<html lang={SITE.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>
+      // 标记 JS 可用；ClientRouter 换页会替换 <html> 的属性，所以换页后再补一次
+      document.documentElement.classList.add('js');
+      document.addEventListener('astro:after-swap', () => document.documentElement.classList.add('js'));
+    </script>
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content={SITE.author} />
+    <link rel="canonical" href={canonicalUrl} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+    <meta name="theme-color" content="#FAFAFA" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="alternate" type="application/rss+xml" title={`${SITE.brand} 文章与情报`} href="/rss.xml" />
+    <link rel="sitemap" href="/sitemap.xml" />
+    <meta property="og:site_name" content={`${SITE.brand} ${SITE.brandEn}`} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:locale" content="zh_CN" />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    {ogImage && image === '/og.png' && <><meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" /></>}
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    {lds.map((ld) => <script is:inline type="application/ld+json" set:html={JSON.stringify(ld)} />)}
+    <slot name="head" />
+    <ClientRouter />
+  </head>
+  <body>
+    <a class="skip" href="#main">跳到正文</a>
+    <SiteHeader />
+    <main id="main" class={mainClass} transition:animate={fade({ duration: '0.22s' })}>
+      <slot />
+    </main>
+    <SiteFooter />
+    <SearchDialog />
+    <MobileNav />
+    <script>
+      import '../scripts/dialogs';
+      import '../scripts/search-ui';
+      import '../scripts/reltime';
+      import '../scripts/motion';
+    </script>
+  </body>
+</html>

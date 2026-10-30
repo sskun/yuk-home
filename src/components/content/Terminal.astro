@@ -1,0 +1,8 @@
+---
+// 深色终端块：行首 "$ " 原样显示，"> " 渲染成灰色提示符（设计稿里的 ›）
+interface Props { lines: string[]; class?: string }
+const { lines, class: className = 'term' } = Astro.props;
+---
+<div class={className} aria-hidden="true">{lines.map((l, i) => (
+  <>{i > 0 && '\n'}{l.startsWith('> ') ? <><span class="t-g">›</span> <span>{l.slice(2)}</span></> : l.startsWith('$ ') ? <><span class="t-p">$</span> <span class="t-w">{l.slice(2)}</span></> : l}</>
+))}</div>

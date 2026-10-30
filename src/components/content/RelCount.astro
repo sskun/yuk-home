@@ -1,0 +1,12 @@
+---
+// 相对时间计数（今日 / 本周 / 本月 N 条）：构建时先输出 fallback，浏览器端按当前时间重算（src/scripts/reltime.ts）
+interface Props {
+  kind: 'today' | 'week' | 'month';
+  dates: Date[];
+  tpl: string;
+  fallback: string;
+}
+const { kind, dates, tpl, fallback } = Astro.props;
+const attr = { today: 'data-today-count', week: 'data-week-count', month: 'data-month-count' }[kind];
+---
+<span {...{ [attr]: '' }} data-dates={dates.map((d) => +d).join('|')} data-tpl={tpl} data-fallback={fallback}>{fallback}</span>

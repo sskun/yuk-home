@@ -1,0 +1,33 @@
+---
+// 情报行：时间 / 分类 / 标题 + 摘要（+ 判断）/ 来源。标题有外链时新标签页打开。
+import type { CollectionEntry } from 'astro:content';
+import { hm } from '../../lib/date';
+interface Props { item: CollectionEntry<'feed'> }
+const { item } = Astro.props;
+const d = item.data;
+const href = d.link ?? d.sourceUrl;
+const external = !d.link && !!d.sourceUrl;
+---
+<li
+  id={item.id}
+  data-item
+  data-id={item.id}
+  data-cat={d.category}
+  data-verdict={d.verdict ? '1' : '0'}
+  data-tag={d.tags.join('|')}
+  data-sort-new={+d.date}
+>
+  <time datetime={d.date.toISOString()}>{hm(d.date)}</time>
+  <span class="cat">{d.category}</span>
+  <div class="t">
+    {href ? (
+      <a href={href} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{d.title}{external && <span class="ext" aria-label="（外部链接）">↗</span>}</a>
+    ) : (
+      <span class="tt">{d.title}</span>
+    )}
+    <em>{d.summary}</em>
+    {d.verdict && <p class="vd"><b>判断</b><span>{d.verdict}</span></p>}
+    <span class="mm"><span class="c">{d.category}</span> · {d.source}</span>
+  </div>
+  <span class="src">{d.source}</span>
+</li>

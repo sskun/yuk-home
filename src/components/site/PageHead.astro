@@ -1,0 +1,11 @@
+---
+// 内页页头：kick + h1 + 说明 + 统计行（统计行用具名插槽 stats，内容是若干 <span>）
+interface Props { kick: string; title: string; dek?: string }
+const { kick, title, dek } = Astro.props;
+---
+<div class="phead">
+  <span class="kick"><i></i>{kick}</span>
+  <h1>{title}</h1>
+  {dek && <p class="dek">{dek}</p>}
+  {Astro.slots.has('stats') && <div class="pstat"><slot name="stats" /></div>}
+</div>

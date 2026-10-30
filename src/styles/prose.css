@@ -1,0 +1,297 @@
+/* 文章正文排版（.doc），数值取设计稿 V2 文章详情定稿。
+ * Markdown 渲染出的元素没有类名，这里按标签写；表格、代码块、引用沿用设计稿的 .tbl-s / pre / blockquote 视觉。 */
+.doc {
+  padding: 40px 0 10px;
+}
+.doc > header h1 {
+  font-family: var(--serif);
+  font-size: 40px;
+  line-height: 1.28;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  margin: 10px 0 0;
+}
+.doc .meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--mid);
+  margin-top: 18px;
+}
+.doc .lead {
+  font-size: 17px;
+  line-height: 1.95;
+  color: var(--mid);
+  margin-top: 18px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+}
+.doc .conclusion {
+  margin: 22px 0;
+  padding: 16px 18px;
+  background: var(--blue-soft);
+  border-radius: 10px;
+  font-size: 14.5px;
+  line-height: 1.85;
+}
+.doc .conclusion b {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  color: var(--blue);
+  margin-bottom: 6px;
+}
+
+/* —— Markdown 正文 —— */
+.prose h2 {
+  font-size: 23px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  margin: 42px 0 14px;
+  scroll-margin-top: 80px;
+}
+.prose h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 26px 0 8px;
+  scroll-margin-top: 80px;
+}
+.prose h4 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 20px 0 6px;
+}
+.prose p {
+  font-size: 16.5px;
+  line-height: 2.05;
+  margin: 18px 0;
+  color: var(--body-ink);
+}
+.prose strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+.prose a {
+  color: var(--blue);
+  border-bottom: 1px solid var(--blue-line);
+  transition: border-color 0.15s;
+}
+.prose a:hover {
+  border-color: var(--blue);
+}
+.prose ul,
+.prose ol {
+  margin: 14px 0;
+  padding-left: 2px;
+}
+.prose li {
+  position: relative;
+  padding-left: 18px;
+  margin: 8px 0;
+  font-size: 16.5px;
+  line-height: 2.05;
+  color: var(--body-ink);
+}
+.prose ul > li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--weak);
+}
+.prose ol {
+  counter-reset: li;
+}
+.prose ol > li {
+  counter-increment: li;
+  padding-left: 26px;
+}
+.prose ol > li::before {
+  content: counter(li, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 0.15em;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--blue);
+}
+.prose li > ul,
+.prose li > ol {
+  margin: 4px 0;
+}
+.prose blockquote {
+  margin: 22px 0;
+  padding: 16px 18px;
+  background: var(--blue-soft);
+  border-radius: 10px;
+  font-size: 14.5px;
+  line-height: 1.85;
+}
+.prose blockquote p {
+  font-size: inherit;
+  line-height: inherit;
+  margin: 6px 0;
+}
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 36px 0;
+}
+.prose :not(pre) > code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: #f1f1f3;
+  color: var(--ink);
+}
+/* 代码块：Shiki 输出 .astro-code，背景统一成设计的 --dark */
+.prose pre {
+  background: var(--dark) !important;
+  color: var(--dark-ink);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 2;
+  padding: 14px 16px;
+  border-radius: 10px;
+  margin: 18px 0;
+  overflow-x: auto;
+}
+.prose pre code {
+  font-family: inherit;
+  background: none;
+  padding: 0;
+}
+/* Mermaid 图：浅色底卡片 */
+.prose pre.mermaid {
+  background: #fff !important;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  text-align: center;
+  line-height: 1.5;
+}
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 24px 0;
+  font-size: 13.5px;
+}
+.prose th {
+  text-align: left;
+  padding: 10px 12px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--weak);
+  font-weight: 400;
+  border-bottom: 1px solid var(--ink);
+  white-space: nowrap;
+}
+.prose td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--line-2);
+  vertical-align: top;
+  line-height: 1.75;
+}
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  margin: 22px 0;
+}
+.prose figure {
+  margin: 22px 0;
+}
+.prose figcaption {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--weak);
+  margin-top: 8px;
+}
+
+@media (max-width: 1080px) {
+  /* 窄屏时表格可横向滚动，不撑破容器 */
+  .prose table {
+    display: block;
+    overflow-x: auto;
+  }
+  .doc > header h1 {
+    font-size: 29px;
+  }
+  .doc .lead {
+    font-size: 15.5px;
+  }
+  .prose p,
+  .prose li {
+    font-size: 15.5px;
+    line-height: 1.95;
+  }
+  .prose h2 {
+    font-size: 20px;
+  }
+  .prose th,
+  .doc .conclusion b {
+    font-size: 10px;
+  }
+}
+
+/* Mermaid 图的放大灯箱 */
+.prose pre.mermaid.zoomable {
+  cursor: zoom-in;
+}
+.mermaid-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  background: rgba(250, 250, 250, 0.96);
+  opacity: 0;
+  transition: opacity 0.2s;
+  overflow: hidden;
+}
+.mermaid-lightbox.open {
+  opacity: 1;
+}
+.mermaid-lightbox[hidden] {
+  display: none;
+}
+.mlb-stage {
+  max-width: 92vw;
+  max-height: 84vh;
+  cursor: grab;
+  transform-origin: center;
+  touch-action: none;
+}
+.mlb-stage svg {
+  max-width: 92vw;
+  max-height: 84vh;
+}
+.mlb-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--mid);
+}
+.mlb-hint {
+  position: absolute;
+  bottom: 18px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--weak);
+}

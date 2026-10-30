@@ -1,0 +1,38 @@
+---
+// 文章卡：编号 · 分类 · 日期 / 衬线标题 / 摘要 / 时长 · 字数 · 带代码。feat 为通栏大卡（含缩略图）。
+import type { Post } from '../../lib/content';
+import { postFlags } from '../../lib/content';
+import { md } from '../../lib/date';
+import { thousands } from '../../lib/text';
+import SmartImage from '../ui/SmartImage.astro';
+interface Props { post: Post; feat?: boolean; latest?: boolean }
+const { post, feat = false, latest = false } = Astro.props;
+const meta = [`${post.minutes} 分钟`, `${thousands(post.words)} 字`, ...postFlags(post)];
+const cover = post.entry.data.cover;
+---
+<a
+  class:list={['card acard', { feat }]}
+  href={`/article/${post.id}`}
+>
+  {feat ? (
+    <>
+      <div class="txt">
+        <span class="n">{post.noLabel} · {post.category} · {md(post.date)}</span>
+        <h3 transition:name={`post-${post.id}`}>{post.title}</h3>
+        <p class="d">{post.description}</p>
+        <span class="m">{meta.map((m, i) => <>{i > 0 && <span aria-hidden="true">·</span>}<span>{m}</span></>)}</span>
+      </div>
+      <span class="thumb-ph" aria-hidden="true">
+        {cover && <SmartImage src={cover} alt="" widths={[440]} sizes="220px" />}
+        {latest && <span class="tag">最新</span>}
+      </span>
+    </>
+  ) : (
+    <>
+      <span class="n">{post.noLabel} · {post.category} · {md(post.date)}</span>
+      <h3 transition:name={`post-${post.id}`}>{post.title}</h3>
+      <p class="d">{post.description}</p>
+      <span class="m">{meta.map((m, i) => <>{i > 0 && <span aria-hidden="true">·</span>}<span>{m}</span></>)}</span>
+    </>
+  )}
+</a>

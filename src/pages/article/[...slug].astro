@@ -1,24 +1,136 @@
 ---
-import { getCollection, render } from 'astro:content';
+// 文章详情：浏览优先，去掉侧栏，正文 720px 居中，让人一口气读完。
+// URL 与旧版一致：src/content/article/<id>.md -> /article/<id>
 import type { GetStaticPaths } from 'astro';
-import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Crumb from '../../components/site/Crumb.astro';
+import SmartImage from '../../components/ui/SmartImage.astro';
+import { SITE } from '../../consts';
+import { getPosts, postFlags, type Post } from '../../lib/content';
+import { md, ymd } from '../../lib/date';
+import { thousands } from '../../lib/text';
 
-// 动态路由：为 article 集合中每篇非草稿文档生成静态页面。
-// URL 形态：src/content/article/test01.md -> /article/test01
-//          src/content/article/guides/setup.md -> /article/guides/setup
 export const getStaticPaths: GetStaticPaths = async () => {
-  const entries = await getCollection('article', ({ data }) => !data.draft);
-  return entries.map((entry) => ({
-    params: { slug: entry.id },
-    props: { entry },
-  }));
+  const posts = await getPosts();
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
 };
 
-const { entry } = Astro.props;
-// render 将 markdown 编译为可渲染组件，并返回自动提取的标题列表（含 depth/slug/text）
-const { Content, headings } = await render(entry);
+const { post } = Astro.props as { post: Post };
+const { Content, headings } = await render(post.entry);
+const d = post.entry.data;
+const toc = headings.filter((h) => h.depth === 2);
+const all = await getPosts();
+// 接着读：同分类最近 2 篇，不够用最新文章补齐
+const others = all.filter((p) => p.id !== post.id);
+const rel = [...others.filter((p) => p.category === post.category), ...others.filter((p) => p.category !== post.category)].slice(0, 2);
+const flags = postFlags(post);
+const canonical = d.canonical;
+const jsonLd: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: post.title,
+  description: post.description,
+  url: canonical ?? new URL(Astro.url.pathname, Astro.site ?? Astro.url).href,
+  datePublished: post.date.toISOString(),
+  author: { '@type': 'Person', name: d.author ?? SITE.author },
+  inLanguage: 'zh-CN',
+  wordCount: post.words,
+};
+if (d.updatedDate) jsonLd.dateModified = d.updatedDate.toISOString();
+if (post.tags.length) jsonLd.keywords = post.tags.join(', ');
 ---
 
-<ArticleLayout entry={entry} headings={headings}>
-  <Content />
-</ArticleLayout>
+<Base title={post.title} description={post.description} ogType="article" image={d.image} canonical={canonical} noindex={post.mock} jsonLd={jsonLd}>
+  <Fragment slot="head">
+    <meta property="article:published_time" content={post.date.toISOString()} />
+    {d.updatedDate && <meta property="article:modified_time" content={d.updatedDate.toISOString()} />}
+    {post.tags.map((t) => <meta property="article:tag" content={t} />)}
+  </Fragment>
+  <div class="prog" aria-hidden="true"></div>
+  <div class="reader">
+    <Crumb items={[{ label: '文章', href: '/article' }, { label: post.category }]} />
+    <article class="doc">
+      <header>
+        <span class="kick"><i></i>{[post.category, ...flags].join(' · ')}</span>
+        <h1 transition:name={`post-${post.id}`}>{post.title}</h1>
+        <div class="meta">
+          <time datetime={post.date.toISOString()}>{ymd(post.date)}</time><span aria-hidden="true">·</span>
+          <span>{d.author ?? SITE.authorShort}</span><span aria-hidden="true">·</span>
+          <span>{post.minutes} 分钟</span><span aria-hidden="true">·</span>
+          <span>{thousands(post.words)} 字</span>
+          {d.updatedDate && <><span aria-hidden="true">·</span><span>更新于 {md(d.updatedDate)}</span></>}
+        </div>
+        <p class="lead">{post.description}</p>
+      </header>
+      {toc.length > 1 && (
+        <nav class="tocbar" aria-label="本文包含">
+          <h4>本文包含</h4>
+          <ol>{toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+        </nav>
+      )}
+      {d.verdict && <div class="conclusion"><b>先说结论</b>{d.verdict}</div>}
+      <div class="prose">
+        <Content />
+      </div>
+    </article>
+
+    <div class="author">
+      <div class="av" aria-hidden="true"><SmartImage src="/src/assets/brand/upwind-hero.png" alt="" widths={[112]} sizes="56px" /></div>
+      <div>
+        <div class="n">{SITE.author}</div>
+        <div class="d">{SITE.city}，全栈开发者，主要写工具。{SITE.brand}记的是我看什么、做什么、怎么判断。<a href="/about">看关于 →</a></div>
+      </div>
+    </div>
+    {rel.length > 0 && (
+      <nav class="rel" aria-label="接着读">
+        <h4>接着读</h4>
+        <div class="g">
+          {rel.map((p) => (
+            <a href={`/article/${p.id}`}>
+              <div class="n">{p.noLabel} · {p.category}</div>
+              <div class="t">{p.title}</div>
+              <div class="m">{md(p.date)} · {p.minutes} 分钟</div>
+            </a>
+          ))}
+        </div>
+      </nav>
+    )}
+  </div>
+</Base>
+
+<script>
+  import '../../scripts/mermaid';
+  import { onPageLoad } from '../../scripts/lifecycle';
+  // 目录点击平滑滚动；不支持 CSS 滚动驱动动画的浏览器用 JS 更新阅读进度条
+  onPageLoad(() => {
+    const ac = new AbortController();
+    document.querySelectorAll<HTMLAnchorElement>('.tocbar a').forEach((a) =>
+      a.addEventListener('click', (e) => {
+        const el = document.getElementById(decodeURIComponent(a.hash.slice(1)));
+        if (!el) return;
+        e.preventDefault();
+        const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+        history.replaceState(history.state, '', a.hash);
+      }, { signal: ac.signal }),
+    );
+    const bar = document.querySelector<HTMLElement>('.prog');
+    if (bar && !CSS.supports('animation-timeline: scroll()')) {
+      let ticking = false;
+      const update = () => {
+        const max = document.documentElement.scrollHeight - innerHeight;
+        bar.style.transform = `scaleX(${max > 0 ? Math.min(1, scrollY / max) : 0})`;
+        ticking = false;
+      };
+      addEventListener('scroll', () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(update);
+        }
+      }, { passive: true, signal: ac.signal });
+      update();
+    }
+    return () => ac.abort();
+  });
+</script>

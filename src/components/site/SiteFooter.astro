@@ -1,0 +1,10 @@
+---
+import { SITE } from '../../consts';
+const y = new Date().getFullYear();
+---
+<footer class="site-footer" transition:animate="none">
+  <div class="wrap fbot">
+    <span>© {y} {SITE.brand} {SITE.brandEn} · {SITE.slogan.replace(/。$/, '')} · <a href={`mailto:${SITE.email}`}>{SITE.email}</a></span>
+    <span class="r"><span>内容可转载 · 请注明出处</span><a href="/rss.xml">RSS</a><a href="/sitemap.xml">站点地图</a></span>
+  </div>
+</footer>

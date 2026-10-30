@@ -1,0 +1,45 @@
+---
+// 项目页的大块：左截图（或终端样式占位）+ 元信息，右名称 / 一句话 / 来龙去脉 / 三个数字 / 技术栈 / 按钮
+import { render, type CollectionEntry } from 'astro:content';
+import { md } from '../../lib/date';
+import SmartImage from '../ui/SmartImage.astro';
+interface Props { project: CollectionEntry<'projects'> }
+const { project } = Astro.props;
+const d = project.data;
+const { Content } = await render(project);
+const ext = (h: string) => /^https?:/.test(h);
+---
+<section class="proj" id={project.id} aria-labelledby={`${project.id}-h`}>
+  <div>
+    <div class="shot-lg">
+      <div class="bar2" aria-hidden="true"><i></i><i></i><i></i><span class="u">{d.shotCaption ?? d.name}</span></div>
+      <div class:list={['bd', { 'has-img': !!d.shot }]}>
+        {d.shot && <SmartImage src={d.shot} alt={`${d.name} 界面截图`} widths={[640, 1200]} sizes="(max-width: 1080px) 100vw, 610px" />}
+        {!d.shot && d.shotLines.length > 0 && (
+          <div class="ov" aria-hidden="true">{d.shotLines.map((l, i) => (
+            <>{i > 0 && '\n'}{l.startsWith('> ') ? <><span class="p">›</span> {l.slice(2)}</> : l}</>
+          ))}</div>
+        )}
+      </div>
+    </div>
+    <div class="meta2">
+      {d.version && <><span>{d.version}</span><span aria-hidden="true">·</span></>}
+      <span>更新 {md(d.updated)}</span><span aria-hidden="true">·</span>
+      <span class:list={['st', { g: d.status === '在线' }]}><i></i>{d.status}</span>
+    </div>
+  </div>
+  <div class="txt">
+    <h2 id={`${project.id}-h`} transition:name={`proj-${project.id}`}>{d.name}</h2>
+    <p class="one">{d.oneLine}</p>
+    <div class="body"><Content /></div>
+    <div class="nums">
+      {d.metrics.map((m) => <div><div class="k">{m.k}</div><div class="v">{m.v}{m.unit && <i>{m.unit}</i>}</div></div>)}
+    </div>
+    <div class="stack2">{d.stack.map((s) => <span>{s}</span>)}</div>
+    <div class="links">
+      {d.links.map((l) => (
+        <a class:list={{ pri: l.primary }} href={l.href} {...(ext(l.href) ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{l.label}</a>
+      ))}
+    </div>
+  </div>
+</section>

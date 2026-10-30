@@ -1,102 +1,93 @@
 ---
-import { getCollection } from 'astro:content';
-import Layout from '../../layouts/Layout.astro';
-import ArticleRow from '../../components/ArticleRow.astro';
-import PageHeader from '../../components/ui/PageHeader.astro';
-import rawConfig from '../../config/site.config';
-import { validateConfig } from '../../config/schema';
+// 文章列表：浏览优先。按年分组，最新一篇通栏大卡（衬线标题），侧栏是档案数据。
+import Base from '../../layouts/Base.astro';
+import Crumb from '../../components/site/Crumb.astro';
+import PageHead from '../../components/site/PageHead.astro';
+import SideWidget from '../../components/site/SideWidget.astro';
+import ArticleCard from '../../components/content/ArticleCard.astro';
+import { getPosts, anyMock, BUILD_TIME } from '../../lib/content';
+import { postStats } from '../../lib/stats';
+import { md, year } from '../../lib/date';
+import { thousands, wan } from '../../lib/text';
+import { POST_CATEGORIES } from '../../consts';
 
-// 文章列表页（/article）：从 article 集合读取全部非草稿文章，按发布时间倒序展示。
-const config = validateConfig(rawConfig);
-
-// 列表页可见文案走配置；未提供时回落到内置缺省文案（保持零硬编码原则）
-const meta = config.articleIndex ?? {
-  title: '文章',
-  description: '全部文章列表',
-  heading: '文章',
-  intro: undefined as string | undefined,
-  eyebrow: undefined as string | undefined,
-};
-
-// 过滤草稿：与详情页 [...slug].astro 的策略保持一致
-const entries = await getCollection('article', ({ data }) => !data.draft);
-
-// 排序：有 pubDate 者按时间降序（新在前），无日期者排最后并以标题升序稳定次序
-entries.sort((a, b) => {
-  const ta = a.data.pubDate ? a.data.pubDate.getTime() : -Infinity;
-  const tb = b.data.pubDate ? b.data.pubDate.getTime() : -Infinity;
-  if (ta !== tb) return tb - ta;
-  return a.data.title.localeCompare(b.data.title);
-});
-
-const base = config.theme.animationEnabled ? config.theme.animationBaseDelay : 0;
+const posts = await getPosts();
+const ps = postStats(posts, BUILD_TIME);
+const byYear = ps.years
+  .slice()
+  .reverse()
+  .map((y) => ({ y, list: posts.filter((p) => year(p.date) === y) }));
+const thisYear = year(BUILD_TIME);
+const yearNote = (y: string) => (y === thisYear ? '今年' : y === ps.earliestYear ? '第一年' : '');
+const cats = POST_CATEGORIES.filter((c) => ps.byCategory[c]);
+const picks = posts.filter((p) => p.entry.data.pick).slice(0, 4);
+const featId = posts[0]?.id;
 ---
 
-<Layout
-  title={meta.title}
-  description={meta.description}
-  lang={config.site.lang}
-  author={config.site.author}
-  favicon={config.site.favicon}
-  ogImage={config.site.ogImage}
-  theme={config.theme}
-  nav={config.nav}
->
-  <main class="article-list">
-    <PageHeader
-      eyebrow={meta.eyebrow}
-      heading={meta.heading}
-      intro={meta.intro}
-      meta={entries.length > 0 ? `共 ${entries.length} 篇` : undefined}
-    />
-    <div class="body">
-      {
-        entries.length > 0 ? (
-          <ol class="list">
-            {entries.map((entry, i) => (
-              <ArticleRow entry={entry} delay={base + i * 70} lang={config.site.lang} headingLevel={2} />
-            ))}
-          </ol>
-        ) : (
-          <p class="empty" data-animate style={`--animate-delay:${base}ms`}>
-            还没有已发布的文章，敬请期待。
-          </p>
-        )
-      }
+<Base title="文章" description="把一件工具或一件小事拆到底。多数带代码、带数据、带我踩过的坑，不是观点复读。" noindex={anyMock(posts)}>
+  <Crumb items={[{ label: '文章' }]} />
+  <PageHead kick="写完才发 · 不定期" title="文章" dek="把一件工具或一件小事拆到底。多数带代码、带数据、带我踩过的坑，不是观点复读。">
+    <Fragment slot="stats">
+      <span>共 <b>{ps.total}</b> 篇</span>
+      <span>跨 <b>{ps.span}</b> 年</span>
+      <span>平均篇幅 <b>{thousands(ps.avgWords)}</b> 字</span>
+      {ps.latest && <span>最后更新 <b>{md(ps.latest)}</b></span>}
+    </Fragment>
+  </PageHead>
+
+  <div class="browse">
+    <div class="js-only flex flex-wrap gap-[18px]" data-chip-group="browse" data-mode="single" role="group" aria-label="按年份或分类浏览">
+      <button type="button" data-value="" aria-pressed="true">全部</button>
+      {byYear.map((g) => <button type="button" data-value={`y${g.y}`} aria-pressed="false">{g.y}</button>)}
+      {cats.map((c) => <button type="button" data-value={c} aria-pressed="false">{c}</button>)}
     </div>
-  </main>
-</Layout>
+    <span class="r">浏览模式 · 需要精确查找可按 <kbd>/</kbd> 唤起检索</span>
+  </div>
+
+  <div class="cols">
+    <div class="cols-l" data-list data-page-size="0">
+      {posts.length === 0 && <div class="empty mt-6"><b>暂无文章</b>第一篇还在写。</div>}
+      {byYear.map((g) => (
+        <section class="yrgrp" data-group aria-labelledby={`y-${g.y}`}>
+          <div class="yrhead"><h2 id={`y-${g.y}`}>{g.y}<i><span data-group-count data-tpl="{n} 篇">{g.list.length} 篇</span></i></h2><span class="r">{yearNote(g.y)}</span></div>
+          <div class="acards" data-reveal>
+            {g.list.map((p) => (
+              <div data-item data-id={p.id} data-browse={`y${year(p.date)}|${p.category}`} class:list={{ 'col-span-full': p.id === featId }}>
+                <ArticleCard post={p} feat={p.id === featId} latest={p.id === featId} />
+              </div>
+            ))}
+          </div>
+        </section>
+      ))}
+      <div class="empty mt-6" data-empty hidden><b>没有匹配</b><button type="button" class="text-blue" data-reset>看全部文章</button></div>
+    </div>
+
+    <aside class="cols-r" aria-label="侧栏">
+      <SideWidget title="档案">
+        <div class="stat-g">
+          <div><div class="k">总篇数</div><div class="v">{ps.total}<i>篇</i></div></div>
+          <div><div class="k">总字数</div><div class="v">{ps.words >= 10000 ? <>{wan(ps.words)}<i>万</i></> : <>{thousands(ps.words)}<i>字</i></>}</div></div>
+          <div><div class="k">带代码</div><div class="v">{ps.withCode}<i>篇</i></div></div>
+          <div><div class="k">最早</div><div class="v">{ps.earliestYear ?? '—'}</div></div>
+        </div>
+      </SideWidget>
+      <SideWidget title="按年份">
+        <ul>{byYear.map((g) => <li><button type="button" data-link-key="browse" data-link-value={`y${g.y}`} aria-pressed="false"><span class="n">{g.y}</span>{g.list.length} 篇{yearNote(g.y) && ` · ${yearNote(g.y)}`}</button></li>)}</ul>
+      </SideWidget>
+      {ps.topTags.length > 0 && (
+        <SideWidget title="标签">
+          <div class="tags">{ps.topTags.slice(0, 12).map((t) => <button type="button" data-search-open data-q={t}>{t}</button>)}</div>
+        </SideWidget>
+      )}
+      {picks.length > 0 && (
+        <SideWidget title="推荐阅读">
+          <ul>{picks.map((p, i) => <li><a href={`/article/${p.id}`}><span class="n">{String(i + 1).padStart(2, '0')}</span>{p.title}</a></li>)}</ul>
+        </SideWidget>
+      )}
+    </aside>
+  </div>
+</Base>
 
 <script>
-  // 复用全局动画脚本：卡片进入视口触发，尊重 prefers-reduced-motion
-  import { initAnimations } from '../../scripts/animate';
-  initAnimations();
+  import '../../scripts/list-filter';
 </script>
-
-<style>
-  .article-list {
-    padding-bottom: 6rem;
-  }
-  .body {
-    /* 与 PageHeader 内容区同宽：内容 max-width + 两侧内边距 */
-    max-width: calc(var(--max-width) + 3rem);
-    margin: 0 auto;
-    padding: 0 1.5rem;
-  }
-  .list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    border-top: 1px solid var(--border);
-  }
-  .empty {
-    text-align: center;
-    color: var(--muted);
-    padding: 4rem 0;
-  }
-  @media (max-width: 640px) {
-    .body {
-      padding: 0 1.25rem;
-    }
-  }
-</style>
