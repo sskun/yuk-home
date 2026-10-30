@@ -1,28 +1,153 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import SectionRenderer from '../components/SectionRenderer.astro';
-import rawConfig from '../config/site.config';
-import { validateConfig } from '../config/schema';
+// 首页：检索台。第一屏只有一个动作——问一句；下面用实时数据代替自我介绍。
+import Base from '../layouts/Base.astro';
+import Icon from '../components/site/Icon.astro';
+import SmartImage from '../components/ui/SmartImage.astro';
+import Terminal from '../components/content/Terminal.astro';
+import RelCount from '../components/content/RelCount.astro';
+import { SITE, HERO_CHIPS, HERO_PROMPTS } from '../consts';
+import { getFeed, getPosts, getProjects, getTools, anyMock, abbr, BUILD_TIME } from '../lib/content';
+import { feedStats, toolStats, postStats } from '../lib/stats';
+import { md, hm } from '../lib/date';
 
-// 首页装配器：构建期校验配置，按 sections 顺序渲染，页面零硬编码文案。
-const config = validateConfig(rawConfig);
+const [feed, posts, tools, projects] = await Promise.all([getFeed(), getPosts(), getTools(), getProjects()]);
+const fs = feedStats(feed.map((f) => f.data), BUILD_TIME);
+const ts = toolStats(tools.map((t) => t.data), BUILD_TIME);
+const ps = postStats(posts, BUILD_TIME);
+const works = projects.main;
+
+const headline = feed.find((f) => f.data.headline) ?? feed.find((f) => f.data.verdict) ?? feed[0];
+const picks = [...tools].sort((a, b) => +b.data.addedAt - +a.data.addedAt).slice(0, 3);
+const latestFeed = feed.slice(0, 5);
+const latestPosts = posts.slice(0, 3);
+const online = works.filter((p) => p.data.status === '在线').length;
+
+const counts = [
+  ts.total && `${ts.total} 个工具`,
+  fs.total && `${fs.total} 条情报`,
+  ps.total && `${ps.total} 篇长文`,
+].filter(Boolean);
+const hsub = counts.length ? `${counts.join('、')}——都试过才写进来。` : '都试过才写进来。';
+const lastFeedDay = fs.latest ? `更新至 ${md(fs.latest)}` : '暂无';
+const toolHref = (t: (typeof tools)[number]) => t.data.href ?? `/tools#${t.id}`;
+
+const noindex = anyMock(feed, tools, posts, [...works]);
+const jsonLd = [
+  { '@context': 'https://schema.org', '@type': 'WebSite', name: `${SITE.brand} ${SITE.brandEn}`, alternateName: SITE.brandEn, url: Astro.site?.href, inLanguage: 'zh-CN', description: SITE.description },
+  { '@context': 'https://schema.org', '@type': 'Person', name: SITE.author, url: Astro.site?.href, email: `mailto:${SITE.email}`, sameAs: [SITE.github] },
+];
 ---
 
-<Layout
-  title={config.site.title}
-  description={config.site.description}
-  lang={config.site.lang}
-  author={config.site.author}
-  favicon={config.site.favicon}
-  ogImage={config.site.ogImage}
-  theme={config.theme}
-  nav={config.nav}
->
-  {config.sections.map((section, i) => <SectionRenderer section={section} index={i} theme={config.theme} lang={config.site.lang} />)}
-</Layout>
+<Base description={SITE.description} noindex={noindex} jsonLd={jsonLd}>
+  <section class="hero" aria-labelledby="hero-h">
+    <div class="hero-art" aria-hidden="true">
+      <SmartImage src="/src/assets/brand/upwind-hero.png" alt="" widths={[300, 600]} sizes="300px" loading="eager" fetchpriority="high" />
+    </div>
+    <div class="eb">{SITE.tagline}</div>
+    <h1 id="hero-h" data-split>想找什么，先问一句。</h1>
+    <p class="hsub">{hsub}</p>
+    <form class="search" role="search" data-hero-search data-prompts={HERO_PROMPTS.join('|')} action="" onsubmit="return false">
+      <Icon name="search" class="ic" />
+      <input type="search" name="q" placeholder={HERO_PROMPTS[0]} aria-label="站内检索：情报、工具、文章、项目" aria-controls="hero-results-list" autocomplete="off" spellcheck="false" />
+      <button class="go" type="submit">问一句</button>
+    </form>
+    <noscript><p class="noscript-tip">检索需要开启 JavaScript，下面的内容照常可以浏览。</p></noscript>
+    <div class="hres" data-hero-results hidden>
+      <div id="hero-results-list" class="sov-res" role="listbox" aria-label="检索结果" data-hero-list></div>
+      <div class="hres-foot" data-foot></div>
+    </div>
+    <div class="chips js-only" aria-label="试试这些">
+      {HERO_CHIPS.map((c) => (c.href ? <a class="chip" href={c.href}>{c.label}</a> : <button type="button" class="chip" data-hero-q={c.q}>{c.label}</button>))}
+    </div>
+    <div class="tiles">
+      <a class="tile" href="/tools">
+        <div class="k">工具库</div><div class="v" data-count={ts.total}>{ts.total}</div>
+        <div class="d"><RelCount kind="week" dates={tools.map((t) => t.data.addedAt)} tpl="本周 +{n}" fallback={`我做的 ${ts.mine} 个`} /></div>
+      </a>
+      <a class="tile" href="/feed">
+        <div class="k">情报</div><div class="v" data-count={fs.total}>{fs.total}</div>
+        <div class="d"><RelCount kind="today" dates={feed.map((f) => f.data.date)} tpl="今日 {n} 条" fallback={lastFeedDay} /></div>
+      </a>
+      <a class="tile" href="/article">
+        <div class="k">长文</div><div class="v" data-count={ps.total}>{ps.total}</div>
+        <div class="d"><RelCount kind="month" dates={posts.map((p) => p.date)} tpl="{m} 月 +{n}" fallback={ps.latest ? `最近 ${md(ps.latest)}` : '暂无'} /></div>
+      </a>
+      <a class="tile" href="/projects">
+        <div class="k">我的项目</div><div class="v" data-count={works.length}>{works.length}</div>
+        <div class="d">{online === works.length ? '全部在线' : `${online} 个在线`}</div>
+      </a>
+    </div>
+  </section>
 
-<script>
-  // 动画初始化：进入视口触发，尊重 prefers-reduced-motion（见任务 8）
-  import { initAnimations } from '../scripts/animate';
-  initAnimations();
-</script>
+  {headline && (
+    <section aria-labelledby="sec-head">
+      <div class="sech"><h2 id="sec-head">最新头条</h2><div class="r"><a href="/feed">全部 {fs.total} 条 →</a></div></div>
+      <a class="card lead-card" href={headline.data.link ?? `/feed#${headline.id}`}>
+        <span class="kick"><i></i>{headline.data.category} · {md(headline.data.date)} {hm(headline.data.date)}</span>
+        <h3>{headline.data.title}</h3>
+        <p class="dek">{headline.data.summary}</p>
+        {headline.data.verdict && <div class="verdict"><span class="l">判断</span><p>{headline.data.verdict}</p></div>}
+      </a>
+    </section>
+  )}
+
+  {picks.length > 0 && (
+    <section aria-labelledby="sec-picks">
+      <div class="sech"><h2 id="sec-picks">最近收录</h2><div class="r"><a href="/tools">工具库 {ts.total} 个 →</a></div></div>
+      <div class="picks" data-reveal>
+        {picks.map((t) => (
+          <a class="card pick" href={toolHref(t)}>
+            <span class="ico" aria-hidden="true">{abbr(t.data.name, t.data.abbr)}</span>
+            <span>
+              <span class="nm">{t.data.name}</span>
+              <span class="ds">{t.data.tagline}</span>
+              <span class="tg">{t.data.mine && <span class="mine-t">我的</span>}{t.data.tags.slice(0, 3).map((g) => <span>{g}</span>)}</span>
+            </span>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {works.length > 0 && (
+    <section aria-labelledby="sec-works">
+      <div class="sech"><h2 id="sec-works">我做的</h2><div class="r"><a href="/projects">看项目页 →</a></div></div>
+      <div class="works" data-reveal>
+        {works.map((p) => (
+          <div class="card work">
+            <div class="wh"><b transition:name={`proj-${p.id}`}>{p.data.name}</b><span class:list={['st', { g: p.data.status === '在线' }]}><i></i>{p.data.status}</span></div>
+            {p.data.term.length > 0 && <Terminal lines={p.data.term} />}
+            <p>{p.data.oneLine}</p>
+            <a class="go" href={`/projects#${p.id}`}>看详情 →</a>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {(latestFeed.length > 0 || latestPosts.length > 0) && (
+    <section class="split" data-reveal style={latestFeed.length && latestPosts.length ? undefined : 'grid-template-columns:1fr'}>
+      {latestFeed.length > 0 && (
+        <div class="card box">
+          <div class="sech"><h2>情报流</h2><div class="r"><a href="/feed"><RelCount kind="today" dates={feed.map((f) => f.data.date)} tpl="今日 {n} 条 →" fallback={`全部 ${fs.total} 条 →`} /></a></div></div>
+          <ul class="feed">
+            {latestFeed.map((f) => (
+              <li><time datetime={f.data.date.toISOString()}>{hm(f.data.date)}</time><a class="t" href={`/feed#${f.id}`}><em>{f.data.category}</em>{f.data.title}</a></li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {latestPosts.length > 0 && (
+        <div class="card box">
+          <div class="sech"><h2>长文</h2><div class="r"><a href="/article">{ps.total} 篇 →</a></div></div>
+          {latestPosts.map((p) => (
+            <a class="read" href={`/article/${p.id}`}>
+              <h3 transition:name={`post-${p.id}`}>{p.title}</h3>
+              <div class="m">{p.category} / {p.minutes} 分钟 / {md(p.date)}</div>
+            </a>
+          ))}
+        </div>
+      )}
+    </section>
+  )}
+</Base>

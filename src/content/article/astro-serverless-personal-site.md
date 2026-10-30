@@ -2,6 +2,8 @@
 title: 用 Astro + Cloudflare Pages 零服务器搭建高性能个人网站
 description: 不用服务器也能拥有一个又快又利于 SEO 的个人网站。本文介绍 Astro 是什么、背后的托管原理，并说明如何用 GitHub 仓库在 Cloudflare Pages 上一键部署纯静态站点。
 pubDate: 2026-07-12
+category: 工程
+pick: true
 tags: [Astro, Cloudflare Pages, 静态站点, SEO, 性能]
 ---
 

@@ -1,0 +1,69 @@
+/* 设计令牌：数值来自设计交付物 01-设计令牌.md，一比一照搬。
+ * 写成普通 CSS 变量，site.css / prose.css 直接用 var(--x)；
+ * 再通过 @theme inline 暴露给 Tailwind 工具类（bg-ink、text-mid、font-mono…）。
+ * 规则：全站只有一个强调色 --blue；--weak 只用于元信息，不得用于正文。 */
+:root {
+  /* 底与面 */
+  --bg: #fafafa;
+  --line: #e8e8ea;
+  --line-2: #f0f0f2;
+  /* 字 */
+  --ink: #0a0a0a;
+  --mid: #6b7280;
+  --weak: #9ca3af;
+  --body-ink: #232326;
+  /* 强调（唯一彩色） */
+  --blue: #1d4ed8;
+  --blue-soft: #eef2ff;
+  --blue-hover: #1a43be;
+  --blue-line: #cbd5f5;
+  /* 深色块（终端、代码） */
+  --dark: #0f1115;
+  --dark-ink: #c8ccd2;
+  --dark-mid: #5f6672;
+  --blue-on-dark: #7c9bff;
+  /* 状态 */
+  --green: #2f7d5b;
+  --green-bg: #eaf5ef;
+  /* 交互态 */
+  --border-hover: #d0d0d4;
+  --input-border: #dcdce0;
+  --tag-mine-bd: #c7d3f7;
+  --crumb-sep: #d4d4d8;
+  --ico-bg: #f1f1f3;
+  --ico-ink: #8a8a90;
+  --row-hover: #fcfcfd;
+  /* 字族：系统字体栈，不加载 Web Font；补 Windows 回退 */
+  --sans: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Inter', system-ui, sans-serif;
+  --mono: 'SF Mono', 'JetBrains Mono', Menlo, Consolas, ui-monospace, monospace;
+  --serif: 'Source Han Serif SC', 'Songti SC', 'Noto Serif SC', STSong, SimSun, Georgia, serif;
+  /* 阴影 */
+  --shadow-card: 0 1px 2px rgba(10, 10, 10, 0.03);
+  --shadow-find: 0 4px 16px rgba(10, 10, 10, 0.04);
+  --shadow-find-f: 0 4px 16px rgba(29, 78, 216, 0.1);
+  --shadow-hero: 0 6px 24px rgba(10, 10, 10, 0.06);
+  --shadow-hero-f: 0 6px 24px rgba(29, 78, 216, 0.12);
+  --shadow-pop: 0 12px 40px rgba(10, 10, 10, 0.16);
+  /* 版式 */
+  --header-h: 56px;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-ink: var(--ink);
+  --color-mid: var(--mid);
+  --color-weak: var(--weak);
+  --color-blue: var(--blue);
+  --color-blue-soft: var(--blue-soft);
+  --color-blue-hover: var(--blue-hover);
+  --color-dark: var(--dark);
+  --color-green: var(--green);
+  --color-green-bg: var(--green-bg);
+  --font-sans: var(--sans);
+  --font-mono: var(--mono);
+  --font-serif: var(--serif);
+  /* 唯一断点：≥1081px 为桌面（设计在 1080px 及以下塌成单列） */
+  --breakpoint-desk: 1081px;
+}

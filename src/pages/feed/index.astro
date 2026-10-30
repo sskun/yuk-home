@@ -1,0 +1,113 @@
+---
+// 情报流：检索优先。常驻检索栏 + 计数 chips + 按天分组的紧凑行 + 侧栏。
+import Base from '../../layouts/Base.astro';
+import Crumb from '../../components/site/Crumb.astro';
+import PageHead from '../../components/site/PageHead.astro';
+import FindBar from '../../components/site/FindBar.astro';
+import SideWidget from '../../components/site/SideWidget.astro';
+import FeedRow from '../../components/content/FeedRow.astro';
+import RelCount from '../../components/content/RelCount.astro';
+import { FEED_CATEGORIES } from '../../consts';
+import { getFeed, anyMock, BUILD_TIME } from '../../lib/content';
+import { feedStats } from '../../lib/stats';
+import { dayKey, ymd, weekday, md, hm, weekStart } from '../../lib/date';
+
+const PAGE = 14;
+const feed = await getFeed();
+const fs = feedStats(feed.map((f) => f.data), BUILD_TIME);
+
+// 按北京时间的天分组（已按时间倒序）
+const days: { key: string; date: Date; items: typeof feed }[] = [];
+for (const f of feed) {
+  const k = dayKey(f.data.date);
+  const last = days[days.length - 1];
+  if (last?.key === k) last.items.push(f);
+  else days.push({ key: k, date: f.data.date, items: [f] });
+}
+const cats = FEED_CATEGORIES.filter((c) => fs.byCategory[c]);
+const latestWeek = fs.latest ? weekStart(fs.latest) : 0;
+// 「本周判断」：最新一周里带判断的条目；没有就取最近 3 条带判断的
+const weekVerdicts = feed.filter((f) => f.data.verdict && +f.data.date >= latestWeek);
+const verdicts = (weekVerdicts.length ? weekVerdicts : feed.filter((f) => f.data.verdict)).slice(0, 3);
+const hotTags = fs.topTags.slice(0, 10);
+const latestLabel = fs.latest ? `${md(fs.latest)} ${hm(fs.latest)}` : '—';
+---
+
+<Base title="情报流" description="AI 领域里值得知道的事，一天几条。每条都标了来源和我的判断，不转述通稿。" noindex={anyMock(feed)}>
+  <Crumb items={[{ label: '情报流' }]} />
+  <PageHead kick="每日更新 · 按时间倒序" title="情报流" dek="AI 领域里值得知道的事，一天几条。每条都标了来源和我的判断，不转述通稿。">
+    <Fragment slot="stats">
+      <span>共 <b>{fs.total}</b> 条</span>
+      <span><RelCount kind="week" dates={feed.map((f) => f.data.date)} tpl="本周 {n} 条" fallback={`带判断 ${fs.withVerdict} 条`} /></span>
+      <span>平均每天 <b>{fs.perDay}</b> 条</span>
+      <span>更新至 <b>{latestLabel}</b></span>
+    </Fragment>
+  </PageHead>
+
+  {feed.length === 0 ? (
+    <div class="empty"><b>暂无情报</b>第一条情报还在路上。可以先看看 <a class="text-blue" href="/tools">工具库</a> 或 <a class="text-blue" href="/article">文章</a>。</div>
+  ) : (
+    <>
+      <FindBar type="feed" placeholder="搜情报：上下文、本地优先、MCP、开源…" label="搜索情报" />
+      <div class="chips js-only" data-chip-group="cat" data-mode="or" role="group" aria-label="按分类筛选">
+        <button type="button" class="chip" data-value="" aria-pressed="true">全部 <span class="n">{fs.total}</span></button>
+        {cats.map((c) => <button type="button" class="chip" data-value={c} aria-pressed="false">{c} <span class="n">{fs.byCategory[c]}</span></button>)}
+        {fs.withVerdict > 0 && (
+          <button type="button" class="chip" data-link-key="verdict" data-link-value="1" aria-pressed="false">我的判断 <span class="n">{fs.withVerdict}</span></button>
+        )}
+      </div>
+      <div class="sortbar js-only">
+        <span>排序</span>
+        <button type="button" data-sort-btn="new" aria-pressed="true">最新</button>
+        <button type="button" data-link-key="verdict" data-link-value="1" aria-pressed="false">仅带判断</button>
+        <span class="cnt">显示 <span data-shown>{Math.min(PAGE, fs.total)}</span> / {fs.total}</span>
+      </div>
+      {/* 「仅带判断」是一个隐藏的筛选组，由上面两个联动按钮控制 */}
+      <div hidden data-chip-group="verdict" data-mode="single"></div>
+
+      <div class="cols">
+        <div class="cols-l" data-list data-page-size={PAGE}>
+          {days.map((d) => (
+            <section data-group aria-label={ymd(d.date)}>
+              <div class="grpday"><h2>{ymd(d.date)} {weekday(d.date)}</h2><span class="r"><span data-group-count data-tpl="{n} 条">{d.items.length} 条</span></span></div>
+              <ul class="log" data-sort-body>
+                {d.items.map((f) => <FeedRow item={f} />)}
+              </ul>
+            </section>
+          ))}
+          <div class="empty" data-empty hidden><b>没有匹配</b>换个关键词，或者 <button type="button" class="text-blue" data-reset>清除筛选</button>。</div>
+          <div class="more js-only"><button type="button" data-more hidden={fs.total <= PAGE}>加载更早的情报 ↓</button></div>
+        </div>
+
+        <aside class="cols-r" aria-label="侧栏">
+          <SideWidget title="本周">
+            <div class="stat-g">
+              <div><div class="k">新增</div><div class="v"><span data-count={feed.filter((f) => +f.data.date >= latestWeek).length}>{feed.filter((f) => +f.data.date >= latestWeek).length}</span><i>条</i></div></div>
+              <div><div class="k">带判断</div><div class="v">{weekVerdicts.length}<i>条</i></div></div>
+              <div><div class="k">来源</div><div class="v">{fs.sources}<i>个</i></div></div>
+              <div><div class="k">连续</div><div class="v">{fs.streak}<i>周</i></div></div>
+            </div>
+          </SideWidget>
+          {hotTags.length > 0 && (
+            <SideWidget title="热门标签">
+              <div class="tags">{hotTags.map((t) => <button type="button" data-link-key="tag" data-link-value={t} aria-pressed="false">{t}</button>)}</div>
+              <div hidden data-chip-group="tag" data-mode="single"></div>
+            </SideWidget>
+          )}
+          {verdicts.length > 0 && (
+            <SideWidget title="本周判断">
+              <ul>{verdicts.map((f, i) => <li><a href={`#${f.id}`}><span class="n">{String(i + 1).padStart(2, '0')}</span>{f.data.verdict}</a></li>)}</ul>
+            </SideWidget>
+          )}
+          <SideWidget title="来源说明">
+            <p class="txt">每条都标出处：官方、arXiv、GitHub、Hacker News，或者本站。转述别人的会写明是转述，判断被推翻时留痕更正。</p>
+          </SideWidget>
+        </aside>
+      </div>
+    </>
+  )}
+</Base>
+
+<script>
+  import '../../scripts/list-filter';
+</script>

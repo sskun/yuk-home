@@ -1,12 +1,14 @@
-// 图片治理工具客户端入口（重设计版）
-// 布局：页头 → 上传区(空态) → 工作区(左:图片预览 + 右:控件面板) → 结果区
-// 不依赖 daisyUI 类名，所有样式来自 image-governance.astro 的全局 CSS。
+// 图片治理工具客户端入口（v5 改版）
+// 布局：上传区(空态) → 工作区(左:图片预览 + 右:控件面板) → 结果区（原图 / 结果对比滑块）
+// 页头由 Astro 页面渲染；样式在 src/styles/image-tool.css；处理完成的提示用 Starwind Toast。
+// 算法（lib/image-tools）、选区交互（crop-interaction）与 Worker（image-worker）沿用原实现。
 
 import { calcCoverRect, type Rect } from '../../lib/image-tools/crop';
 import { compressToTarget, type EncodeResult } from '../../lib/image-tools/compress';
 import { formatBytes, ratioPercent, inferExt, buildOutputName } from '../../lib/image-tools/format';
 import { ICON } from './icons';
 import { attachCropInteraction, paintOverlay } from './crop-interaction';
+import { toast } from '@/components/starwind/toast';
 
 type Tab = 'crop' | 'compress';
 
@@ -107,7 +109,8 @@ function formatRatio(w: number, h: number): string {
 
 // ---- 入口 ----
 
-export function mountImageGovernance(root: HTMLElement): void {
+/** 挂载工具，返回清理函数（页面切换时释放位图、blob URL 和全局监听） */
+export function mountImageGovernance(root: HTMLElement): () => void {
   const state: State = {
     file: null, bitmap: null,
     srcWidth: 0, srcHeight: 0,
@@ -123,6 +126,7 @@ export function mountImageGovernance(root: HTMLElement): void {
   root.appendChild(buildView(root, state));
 
   // 支持直接粘贴图片（截图后 Ctrl/⌘+V），输入框聚焦时不拦截
+  const ac = new AbortController();
   document.addEventListener('paste', (e) => {
     const t = e.target as HTMLElement | null;
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
@@ -130,7 +134,12 @@ export function mountImageGovernance(root: HTMLElement): void {
     if (!file || state.busy) return;
     e.preventDefault();
     void handleFile(file, root, state);
-  });
+  }, { signal: ac.signal });
+  return () => {
+    ac.abort();
+    state.bitmap?.close();
+    revokeAllURLs(state);
+  };
 }
 
 // ============================================================
@@ -139,9 +148,6 @@ export function mountImageGovernance(root: HTMLElement): void {
 
 function buildView(root: HTMLElement, state: State): HTMLElement {
   const view = el('div', { class: 'ig-view' });
-
-  // 页头
-  view.appendChild(buildPageHead());
 
   // 错误横幅
   const errorSlot = el('div', { class: 'ig-error-slot', role: 'alert', 'aria-live': 'polite' });
@@ -157,25 +163,6 @@ function buildView(root: HTMLElement, state: State): HTMLElement {
   view.appendChild(buildResult(root, state));
 
   return view;
-}
-
-// ---- 页头 ----
-
-function buildPageHead(): HTMLElement {
-  const head = el('div', { class: 'ig-pagehead' });
-  head.appendChild(
-    el('a', { class: 'ig-back', href: '/tools' }, [
-      el('span', { class: 'ig-back-icon', html: ICON.back }),
-      '工具列表',
-    ]),
-  );
-  head.appendChild(
-    el('div', { class: 'ig-heading' }, [
-      el('h1', { class: 'ig-title' }, ['图片治理']),
-      el('p', { class: 'ig-lede' }, ['裁剪与压缩图片，全程在浏览器内完成，不上传任何服务器']),
-    ]),
-  );
-  return head;
 }
 
 // ---- 上传区 ----
@@ -398,7 +385,7 @@ function buildPanelContent(root: HTMLElement, state: State): DocumentFragment {
   tabSection.appendChild(buildTabs(root, state));
 
   // 参数控件
-  const paramsWrap = el('div', { class: 'ig-params' });
+  const paramsWrap = el('div', { class: 'ig-params', id: 'ig-params', role: 'tabpanel' });
   if (state.tab === 'crop') {
     paramsWrap.appendChild(buildCropParams(root, state));
   } else {
@@ -415,15 +402,28 @@ function buildPanelContent(root: HTMLElement, state: State): DocumentFragment {
 
 // Tab
 function buildTabs(root: HTMLElement, state: State): HTMLElement {
-  const wrap = el('div', { class: 'ig-tabs', role: 'tablist' });
+  const wrap = el('div', { class: 'ig-tabs', role: 'tablist', 'aria-label': '操作' });
+  const tabs: [Tab, string][] = [['crop', '裁剪'], ['compress', '压缩']];
 
-  for (const [tab, label] of [['crop', '裁剪'], ['compress', '压缩']] as [Tab, string][]) {
+  for (const [tab, label] of tabs) {
+    const on = state.tab === tab;
     const btn = el('button', {
       type: 'button',
-      class: `ig-tab${state.tab === tab ? ' active' : ''}`,
+      class: `ig-tab${on ? ' active' : ''}`,
       role: 'tab',
-      'aria-selected': state.tab === tab ? 'true' : 'false',
+      'data-tab': tab,
+      'aria-selected': on ? 'true' : 'false',
+      'aria-controls': 'ig-params',
+      tabindex: on ? 0 : -1,
     }, [label]);
+    // 方向键切换（WAI-ARIA tablist，自动激活）
+    btn.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      e.preventDefault();
+      const next = tabs[(tabs.findIndex(([t]) => t === tab) + 1) % tabs.length][0];
+      wrap.querySelector<HTMLButtonElement>(`[data-tab="${next}"]`)?.click();
+      root.querySelector<HTMLButtonElement>(`.ig-tab[data-tab="${next}"]`)?.focus();
+    });
     btn.addEventListener('click', () => {
       if (state.tab === tab) return;
       state.tab = tab;
@@ -566,7 +566,7 @@ function buildLockBtn(root: HTMLElement, state: State): HTMLElement {
 }
 
 // 压缩参数
-function buildCompressParams(root: HTMLElement, state: State): HTMLElement {
+function buildCompressParams(_root: HTMLElement, state: State): HTMLElement {
   const wrap = el('div', { class: 'ig-compress-params' });
 
   // 目标体积
@@ -753,33 +753,26 @@ function buildResultInner(state: State): HTMLElement {
     head.appendChild(dlLink);
   }
   inner.insertBefore(head, inner.firstChild);
-  // 对比预览
+  // 对比预览：原图与结果叠放，拖动滑块左右对比（键盘方向键也可调）
   const preview = el('div', { class: 'ig-result-preview' });
-
-  // 原图面板
-  const srcPane = el('div', { class: 'ig-compare-pane' });
-  srcPane.appendChild(el('div', { class: 'ig-compare-label' }, ['原图']));
-  const srcImgWrap = el('div', { class: 'ig-compare-img-wrap' });
-  if (state.file) {
-    const srcUrl = trackedURL(state, state.file);
-    srcImgWrap.appendChild(el('img', { class: 'ig-compare-img', src: srcUrl, alt: '原图' }));
+  if (state.file && resultBlob) {
+    const cmp = el('div', { class: 'ig-compare', style: '--pos:50%' });
+    cmp.appendChild(el('img', { class: 'ig-compare-img ig-compare-src', src: trackedURL(state, state.file), alt: '原图' }));
+    const top = el('div', { class: 'ig-compare-top' });
+    top.appendChild(el('img', { class: 'ig-compare-img', src: trackedURL(state, resultBlob), alt: '处理结果' }));
+    cmp.appendChild(top);
+    cmp.appendChild(el('span', { class: 'ig-compare-tag l' }, ['结果']));
+    cmp.appendChild(el('span', { class: 'ig-compare-tag r' }, ['原图']));
+    cmp.appendChild(el('span', { class: 'ig-compare-line', 'aria-hidden': 'true' }));
+    const range = el('input', {
+      type: 'range', class: 'ig-compare-range', min: 0, max: 100, value: 50,
+      'aria-label': '对比位置：左侧为结果，右侧为原图',
+    }) as HTMLInputElement;
+    range.addEventListener('input', () => cmp.style.setProperty('--pos', `${range.value}%`));
+    cmp.appendChild(range);
+    preview.appendChild(cmp);
+    preview.appendChild(el('p', { class: 'ig-compare-hint' }, ['拖动中间的分隔线对比：左侧是结果，右侧是原图。']));
   }
-  srcPane.appendChild(srcImgWrap);
-  preview.appendChild(srcPane);
-
-  // 结果面板
-  const resPane = el('div', { class: 'ig-compare-pane' });
-  resPane.appendChild(el('div', { class: 'ig-compare-label' }, ['结果']));
-  const resImgWrap = el('div', { class: 'ig-compare-img-wrap' });
-  if (resultBlob) {
-    const resUrl = trackedURL(state, resultBlob);
-    resImgWrap.appendChild(el('img', { class: 'ig-compare-img', src: resUrl, alt: '处理结果' }));
-  } else {
-    resImgWrap.appendChild(el('div', { class: 'ig-compare-placeholder' }, ['处理后显示在这里']));
-  }
-  resPane.appendChild(resImgWrap);
-  preview.appendChild(resPane);
-
   inner.appendChild(preview);
   return inner;
 }
@@ -958,6 +951,7 @@ async function runCrop(root: HTMLElement, state: State): Promise<void> {
       canvas.toBlob((b) => (b ? res(b) : rej(new Error('toBlob 返回空'))), outType, 0.95),
     );
     state.cropResult = { blob, w: state.cropW, h: state.cropH };
+    notify('裁剪完成', `${state.cropW} × ${state.cropH} · ${formatBytes(blob.size)}，可以下载了。`);
   } catch (e) {
     pushError(root, state, `裁剪失败：${(e as Error).message}`);
   } finally {
@@ -984,6 +978,8 @@ async function runCompress(root: HTMLElement, state: State): Promise<void> {
         resize: resizeWithCanvas,
       });
     }
+    const r = state.compressResult;
+    if (r) notify('压缩完成', `${formatBytes(state.file?.size ?? 0)} → ${formatBytes(r.blob.size)}，可以下载了。`);
   } catch (e) {
     pushError(root, state, `压缩失败：${(e as Error).message}`);
   } finally {
@@ -991,6 +987,14 @@ async function runCompress(root: HTMLElement, state: State): Promise<void> {
     refreshPanel(root, state);
     refreshResult(root, state);
     revealResult(root, state);
+  }
+}
+
+function notify(title: string, description: string): void {
+  try {
+    toast.success(title, { description });
+  } catch {
+    // Toaster 不存在时静默：结果区本身已经展示了结果
   }
 }
 

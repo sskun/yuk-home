@@ -1,0 +1,20 @@
+---
+import { NAV, SITE, isActive } from '../../consts';
+import Icon from './Icon.astro';
+const path = Astro.url.pathname;
+---
+<header class="site-header" transition:animate="none">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label={`${SITE.brand} ${SITE.brandEn} 首页`}>{SITE.brand}<span class="mk" aria-hidden="true">{SITE.mark}</span><span class="en">{SITE.brandEn}</span></a>
+    <nav class="nav" aria-label="主导航">
+      {NAV.map((n) => <a href={n.href} aria-current={isActive(path, n.href) ? 'page' : undefined}>{n.label}</a>)}
+    </nav>
+    <div class="bar-r">
+      <button type="button" class="ghost" data-search-open aria-label="站内检索（快捷键 /）" aria-keyshortcuts="/ Control+K Meta+K">
+        <Icon name="search" size={14} /><span class="lbl">搜索</span><kbd>/</kbd>
+      </button>
+      <a class="pill" href="/about#contact">联系</a>
+      <button type="button" class="menu-btn" data-open="site-drawer" aria-label="打开菜单" aria-haspopup="dialog"><Icon name="menu" /></button>
+    </div>
+  </div>
+</header>

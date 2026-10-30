@@ -1,0 +1,59 @@
+---
+// 项目：作品集，接活与面试靠这页——每个项目给足空间：起因、关键决策、下一步。
+import Base from '../../layouts/Base.astro';
+import Crumb from '../../components/site/Crumb.astro';
+import PageHead from '../../components/site/PageHead.astro';
+import ProjectBlock from '../../components/content/ProjectBlock.astro';
+import Icon from '../../components/site/Icon.astro';
+import { SITE } from '../../consts';
+import { getProjects, getTools, anyMock } from '../../lib/content';
+import { md, ym } from '../../lib/date';
+
+const { main, small } = await getProjects();
+const tools = await getTools();
+const online = main.filter((p) => p.data.status === '在线').length;
+const latest = main.length ? new Date(Math.max(...main.map((p) => +p.data.updated))) : undefined;
+---
+
+<Base title="项目" description="自己做的、自己也在每天用的工具。共同点是：本地优先、不需要账号、装完就不太需要再想起。" noindex={anyMock(main, small)}>
+  <Crumb items={[{ label: '项目' }]} />
+  <PageHead
+    kick={`${main.length} 个 · ${online === main.length ? '全部在线' : `${online} 个在线`}`}
+    title="项目"
+    dek="自己做的、自己也在每天用的工具。共同点是：本地优先、不需要账号、装完就不太需要再想起。"
+  >
+    <Fragment slot="stats">
+      <span>在维护 <b>{main.length}</b> 个</span>
+      {latest && <span>最近更新 <b>{md(latest)}</b></span>}
+      <span>后端服务 <b>0</b></span>
+      <span>全部 <b>本地优先</b></span>
+    </Fragment>
+  </PageHead>
+
+  {main.map((p) => <ProjectBlock project={p} />)}
+
+  {small.length > 0 && (
+    <section aria-labelledby="sec-small">
+      <div class="sech"><h2 id="sec-small">还有一批小的</h2><div class="r"><a href="/tools">工具库里有 {tools.length} 个 →</a></div></div>
+      <div class="small" data-reveal>
+        {small.map((p) => (
+          <div id={p.id}>
+            <div class="n">{[p.data.kind, ym(p.data.updated)].filter(Boolean).join(' · ')}</div>
+            <div class="t">{p.data.name}</div>
+            <div class="d">{p.data.oneLine}</div>
+            <div class="m">{p.data.stack.join(' · ')}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <section class="callout" aria-labelledby="sec-hire">
+    <div>
+      <span class="kick"><i></i>接工具型项目 · 远程</span>
+      <h3 id="sec-hire">如果你也有一个「应该有个工具」的活。</h3>
+      <p>内部工具、检索方案、图片与文件处理管线都可以聊，也接短期咨询。</p>
+    </div>
+    <a class="go" href={`mailto:${SITE.email}?subject=${encodeURIComponent('想聊一个工具型项目')}`}><Icon name="mail" size={14} />写信</a>
+  </section>
+</Base>
