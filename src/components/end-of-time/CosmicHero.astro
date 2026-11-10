@@ -1,0 +1,57 @@
+<div class="cosmic-art" aria-hidden="true" data-cosmic-art></div>
+<div class="cosmic-stage" data-cosmic-stage tabindex="0" role="group" aria-label="星际仪：拖拽旋转，滚轮缩放，方向键旋转，回车释放共振"></div>
+<div class="cosmic-caption">
+  <span>01 / THE CELESTIAL ENGINE</span>
+  <a href="/end-of-time" data-astro-reload>进入时间尽头 ↗</a>
+</div>
+<div class="cosmic-console">
+  <p data-cosmic-status aria-live="polite">拖拽旋转 · 滚轮缩放 · 双击共振</p>
+  <div>
+    <button type="button" data-cosmic-pulse disabled>✧ 释放共振</button>
+    <button type="button" data-cosmic-reset disabled>复位</button>
+    <button type="button" data-cosmic-pause aria-pressed="false" hidden>暂停星空</button>
+  </div>
+</div>
+<style>
+  .cosmic-art { position: absolute !important; inset: 0; z-index: -1; overflow: hidden; border-radius: inherit; pointer-events: none; background: radial-gradient(ellipse at 80% 28%, #a775303b, transparent 30%), radial-gradient(ellipse at 65% 50%, #113e5b66, transparent 50%), #060b15; }
+  .cosmic-art::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg,#030914dd,transparent 65%),linear-gradient(0deg,#030914aa,transparent 35%); }
+  .cosmic-art :global(canvas) { width: 100%; height: 100%; display: block; }
+  .cosmic-stage { position: absolute !important; top: 85px; right: 0; width: 48%; height: 330px; z-index: 2; cursor: grab; border-radius: 30%; }
+  .cosmic-stage:active { cursor: grabbing; }
+  .cosmic-stage:focus-visible { outline: 1px solid #72cadd; outline-offset: -10px; }
+  .cosmic-caption { position: absolute !important; top: 30px; right: 32px; z-index: 3; display: flex; align-items: flex-end; flex-direction: column; gap: 12px; }
+  .cosmic-caption > span { color: #8ba5bc; font: 9px monospace; letter-spacing: 2px; }
+  .cosmic-caption a { color: #e2c493; font-size: 12px; text-decoration: none; }
+  .cosmic-console { position: absolute !important; right: 30px; top: 423px; z-index: 3; text-align: right; }
+  .cosmic-console p { color: #9cbbcf; font-size: 10px; letter-spacing: 1px; margin: 0 0 8px; }
+  .cosmic-console > div { display: flex; justify-content: flex-end; gap: 8px; }
+  .cosmic-console button { color: #c1d6e6; font-size: 11px; background: #0b192bc9; border: 1px solid #385269; border-radius: 24px; padding: 8px 14px; min-height: 44px; cursor: pointer; backdrop-filter: blur(8px); }
+  .cosmic-console button:first-child { color: #ffdb9b; border-color: #9a7545; }
+  .cosmic-console button:hover { background: #244057; }
+  .cosmic-console button:disabled { opacity: .4; cursor: default; }
+  .cosmic-console button[hidden] { display: none; }
+  @media(max-width:700px) {
+    .cosmic-caption { top: 24px; right: 20px; gap: 8px; }
+    .cosmic-caption > span { display: none; }
+    .cosmic-caption a { font-size: 10px; }
+    .cosmic-stage { top: 245px; left: 0; width: 100%; height: 250px; }
+    .cosmic-console { top: 495px; left: 12px; right: 12px; text-align: center; }
+    .cosmic-console > div { justify-content: center; }
+    .cosmic-console button { padding: 8px 12px; }
+    .cosmic-art::after { background: linear-gradient(0deg,#03091499,transparent 60%),linear-gradient(180deg,#030914dd,transparent 35%); }
+  }
+</style>
+<script>
+  import { onPageLoad } from '../../scripts/lifecycle';
+  onPageLoad(() => {
+    const host = document.querySelector<HTMLElement>('[data-cosmic-art]');
+    if (!host) return;
+    let cancelled = false;
+    let cleanup: (() => void) | undefined;
+    // 独立加载视觉模块，搜索与内容不依赖 WebGL 初始化成功。
+    void import('./hero-scene').then(({ mountHeroScene }) => {
+      if (!cancelled) cleanup = mountHeroScene(host);
+    }).catch(() => { host.dataset.ready = 'fallback'; });
+    return () => { cancelled = true; cleanup?.(); };
+  });
+</script>

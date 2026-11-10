@@ -2,8 +2,7 @@
 // 首页：检索台。第一屏只有一个动作——问一句；下面用实时数据代替自我介绍。
 import Base from '../layouts/Base.astro';
 import Icon from '../components/site/Icon.astro';
-import SmartImage from '../components/ui/SmartImage.astro';
-import Terminal from '../components/content/Terminal.astro';
+import CosmicHero from '../components/end-of-time/CosmicHero.astro';
 import RelCount from '../components/content/RelCount.astro';
 import { SITE, HERO_CHIPS, HERO_PROMPTS } from '../consts';
 import { getFeed, getPosts, getProjects, getTools, anyMock, abbr, BUILD_TIME } from '../lib/content';
@@ -39,12 +38,10 @@ const jsonLd = [
 ---
 
 <Base description={SITE.description} noindex={noindex} jsonLd={jsonLd}>
-  <section class="hero" aria-labelledby="hero-h">
-    <div class="hero-art" aria-hidden="true">
-      <SmartImage src="/src/assets/brand/upwind-hero.png" alt="" widths={[300, 600]} sizes="300px" loading="eager" fetchpriority="high" />
-    </div>
+  <section class="hero cosmic-hero" aria-labelledby="hero-h">
+    <CosmicHero />
     <div class="eb">{SITE.tagline}</div>
-    <h1 id="hero-h" data-split>想找什么，先问一句。</h1>
+    <h1 id="hero-h">好奇不止，<br />探索无界。</h1>
     <p class="hsub">{hsub}</p>
     <form class="search" role="search" data-hero-search data-prompts={HERO_PROMPTS.join('|')} action="" onsubmit="return false">
       <Icon name="search" class="ic" />
@@ -109,22 +106,6 @@ const jsonLd = [
     </section>
   )}
 
-  {works.length > 0 && (
-    <section aria-labelledby="sec-works">
-      <div class="sech"><h2 id="sec-works">我做的</h2><div class="r"><a href="/projects">看项目页 →</a></div></div>
-      <div class="works" data-reveal>
-        {works.map((p) => (
-          <div class="card work">
-            <div class="wh"><b transition:name={`proj-${p.id}`}>{p.data.name}</b><span class:list={['st', { g: p.data.status === '在线' }]}><i></i>{p.data.status}</span></div>
-            {p.data.term.length > 0 && <Terminal lines={p.data.term} />}
-            <p>{p.data.oneLine}</p>
-            <a class="go" href={`/projects#${p.id}`}>看详情 →</a>
-          </div>
-        ))}
-      </div>
-    </section>
-  )}
-
   {(latestFeed.length > 0 || latestPosts.length > 0) && (
     <section class="split" data-reveal style={latestFeed.length && latestPosts.length ? undefined : 'grid-template-columns:1fr'}>
       {latestFeed.length > 0 && (
@@ -151,3 +132,32 @@ const jsonLd = [
     </section>
   )}
 </Base>
+
+<style>
+  .cosmic-hero { margin-top: 24px; margin-bottom: 36px; padding: 48px; border-radius: 22px; background: #060b15; color: #eef3fa; isolation: isolate; border: 1px solid #253041; box-shadow: 0 20px 60px #152e4014; }
+  .cosmic-hero .eb { color: #a4c4de; font-size: 11px; letter-spacing: .2em; }
+  .cosmic-hero h1 { font-size: clamp(38px, 4.3vw, 64px); font-weight: 500; line-height: 1.22; letter-spacing: -.04em; margin-top: 24px; text-shadow: 0 3px 24px #060b15; }
+  .cosmic-hero .hsub { color: #b3c2d3; max-width: 500px; font-size: 14px; line-height: 1.8; margin-top: 20px; }
+  .cosmic-hero .search { max-width: 53%; background: #f5f8fc; border-color: #d5e0f0; box-shadow: 0 8px 40px #0003; margin-top: 30px; }
+  .cosmic-hero .chips { margin-top: 16px; max-width: 53%; }
+  .cosmic-hero .chip { color: #c5d3e4; background: #101c2be6; border-color: #354458; }
+  .cosmic-hero .chip:hover { background: #263b55; border-color: #6f8fae; }
+  .cosmic-hero .tiles { margin-top: 90px; gap: 12px; }
+  .cosmic-hero .tile { background: #0c1728e8; border-color: #ffffff21; color: #f1f5f9; backdrop-filter: blur(10px); }
+  .cosmic-hero .tile:hover { border-color: #c3a46b; background: #17263a; }
+  .cosmic-hero .tile .k { color: #b5c3d4; }
+  .cosmic-hero .tile .d { color: #9ec4e5; }
+  .cosmic-hero .hres { color: var(--ink); z-index: 5; }
+  @media (max-width: 700px) {
+    .cosmic-hero { padding: 28px 20px 20px; margin-top: 16px; border-radius: 16px; }
+    .cosmic-hero .eb { max-width: 155px; font-size: 9px; line-height: 1.8; }
+    .cosmic-hero h1 { font-size: 40px; margin-top: 24px; }
+    .cosmic-hero .hsub { max-width: 250px; margin-bottom: 330px; }
+    .cosmic-hero .chips { max-width: 100%; }
+    .cosmic-hero .search { padding-left: 12px; max-width: 100%; }
+    .cosmic-hero .search input { font-size: 13px; min-width: 0; }
+    .cosmic-hero .search .go { padding: 0 12px; font-size: 12px; }
+    .cosmic-hero .tiles { margin-top: 26px; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .cosmic-hero .tile { padding: 12px; }
+  }
+</style>
