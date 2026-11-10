@@ -1,80 +1,149 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import ToolCards from '../../components/ToolCards.astro';
-import PageHeader from '../../components/ui/PageHeader.astro';
-import rawConfig from '../../config/site.config';
-import { validateConfig } from '../../config/schema';
+// 工具库：检索优先。「我做的」置顶 + 一屏 16 行的表格 + 侧栏。
+import Base from '../../layouts/Base.astro';
+import Crumb from '../../components/site/Crumb.astro';
+import PageHead from '../../components/site/PageHead.astro';
+import FindBar from '../../components/site/FindBar.astro';
+import SideWidget from '../../components/site/SideWidget.astro';
+import RelCount from '../../components/content/RelCount.astro';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/starwind/table';
+import { TOOL_CHIPS } from '../../consts';
+import { getTools, anyMock, BUILD_TIME } from '../../lib/content';
+import { toolStats } from '../../lib/stats';
+import { md } from '../../lib/date';
 
-// 工具列表页（/tools）：简洁页头 + 竖向列表。
-const config = validateConfig(rawConfig);
-
-const meta = config.toolsIndex ?? {
-  title: '工具',
-  description: '浏览器内可完成的小工具集合',
-  heading: '工具',
-  intro: undefined as string | undefined,
-  eyebrow: undefined as string | undefined,
-};
-
-const base = config.theme.animationEnabled ? config.theme.animationBaseDelay : 0;
-
-const toolsSection = config.sections.find((s) => s.type === 'tool-grid');
-const items = (meta.items ?? (toolsSection && toolsSection.type === 'tool-grid' ? toolsSection.items : [])) ?? [];
+const PAGE = 16;
+const tools = await getTools();
+const ts = toolStats(tools.map((t) => t.data), BUILD_TIME);
+const mine = tools.filter((t) => t.data.mine);
+const chips = TOOL_CHIPS.filter((c) => ts.byTag[c]);
+const recent = [...tools].sort((a, b) => +b.data.addedAt - +a.data.addedAt).slice(0, 3);
+const sideTags = Object.entries(ts.byTag)
+  .sort((a, b) => b[1] - a[1])
+  .map(([t]) => t)
+  .slice(0, 10);
+const openHref = (t: (typeof tools)[number]) => t.data.href ?? t.data.url!;
+const isExt = (t: (typeof tools)[number]) => !t.data.href;
+const extAttrs = (t: (typeof tools)[number]) => (isExt(t) ? { target: '_blank', rel: 'noopener noreferrer' } : {});
 ---
 
-<Layout
-  title={meta.title}
-  description={meta.description}
-  lang={config.site.lang}
-  author={config.site.author}
-  favicon={config.site.favicon}
-  ogImage={config.site.ogImage}
-  theme={config.theme}
-  nav={config.nav}
->
-  <main class="tools-page">
-    <PageHeader
-      eyebrow={meta.eyebrow}
-      heading={meta.heading}
-      intro={meta.intro ?? '所有处理均在浏览器中完成，文件不会上传到任何服务器。'}
-    />
-    <div class="body">
-      {
-        items.length > 0 ? (
-          <ToolCards items={items} delay={base + 80} comingSoon={config.toolsIndex?.comingSoon} />
-        ) : (
-          <p class="empty" data-animate style={`--animate-delay:${base + 80}ms`}>
-            暂无工具，敬请期待。
-          </p>
-        )
-      }
+<Base title="工具库" description="我自己装过、用过的一批工具。每一条都标了是否上传文件、是否免费、最后一次验证的时间。" noindex={anyMock(tools)}>
+  <Crumb items={[{ label: '工具库' }]} />
+  <PageHead
+    kick="手工筛选 · 每周更新"
+    title="工具库"
+    dek="我自己装过、用过、至少撑过两星期的一批。每一条都标了是否上传文件、是否免费、最后一次验证的时间——不确定的会写「未实测」。"
+  >
+    <Fragment slot="stats">
+      <span>收录 <b>{ts.total}</b> 个</span>
+      <span><RelCount kind="week" dates={tools.map((t) => t.data.addedAt)} tpl="本周新增 {n}" fallback={`免费 ${ts.free}`} /></span>
+      <span>我自己做的 <b>{ts.mine}</b></span>
+      <span>30 天内验证 <b>{ts.verified30d}</b></span>
+    </Fragment>
+  </PageHead>
+
+  <FindBar type="tool" placeholder="找工具：能离线跑、不上传文件、免费、命令行…" label="搜索工具" />
+  <div class="chips js-only" data-chip-group="tag" data-mode="and" role="group" aria-label="按标签筛选（可多选，同时满足）">
+    <button type="button" class="chip" data-value="" aria-pressed="true">全部 <span class="n">{ts.total}</span></button>
+    {chips.map((c) => <button type="button" class="chip" data-value={c} aria-pressed="false">{c} <span class="n">{ts.byTag[c]}</span></button>)}
+    {ts.mine > 0 && <button type="button" class="chip" data-link-key="mine" data-link-value="1" aria-pressed="false">我做的 <span class="n">{ts.mine}</span></button>}
+  </div>
+  <div hidden data-chip-group="mine" data-mode="single"></div>
+  <div class="sortbar js-only">
+    <span>排序</span>
+    <button type="button" data-sort-btn="verified" aria-pressed="true">最近验证</button>
+    <button type="button" data-sort-btn="added" aria-pressed="false">最近新增</button>
+    <span class="cnt">显示 <span data-shown>{Math.min(PAGE, ts.total)}</span> / {ts.total}</span>
+  </div>
+
+  <div class="cols">
+    <div class="cols-l">
+      {mine.length > 0 && (
+        <>
+          <div class="sec"><h2>我做的</h2><span class="r">{mine.length} 个 · 全部可用</span></div>
+          <div class="mine" data-reveal>
+            {mine.map((t) => (
+              <div class="m">
+                <h3>{t.data.name}<span class="badge-mine">MINE</span></h3>
+                <p class="d">{t.data.tagline}</p>
+                <div class="f"><span>{[t.data.version, md(t.data.verifiedAt)].filter(Boolean).join(' · ')}</span><a href={openHref(t)} {...extAttrs(t)}>打开 →</a></div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      <div class="sec"><h2>全部</h2><span class="r" data-sort-label>按最近验证排序</span></div>
+      <div data-list data-page-size={PAGE}>
+        <div class="tbl-wrap">
+          <Table class="tbl">
+            <TableHeader>
+              <TableRow><TableHead>工具</TableHead><TableHead>一句话</TableHead><TableHead>标签</TableHead><TableHead>验证</TableHead><TableHead><span class="sr-only">打开</span></TableHead></TableRow>
+            </TableHeader>
+            <TableBody data-sort-body>
+              {tools.map((t) => (
+                <TableRow
+                  id={t.id}
+                  data-item
+                  data-id={t.id}
+                  data-tag={t.data.tags.join('|')}
+                  data-mine={t.data.mine ? '1' : '0'}
+                  data-sort-verified={+t.data.verifiedAt}
+                  data-sort-added={+t.data.addedAt}
+                >
+                  <TableCell class="tn">
+                    <a class="nm-link" href={openHref(t)} {...extAttrs(t)}>{t.data.name}</a>
+                    {t.data.mine ? <span class="b">MINE</span> : t.data.offline && <span class="b">本地</span>}
+                  </TableCell>
+                  <TableCell class="td2">{t.data.tagline}{t.data.note && <span class="note">{t.data.note}</span>}</TableCell>
+                  <TableCell class="tg">{t.data.tags.map((g) => <span>{g}</span>)}</TableCell>
+                  <TableCell class="tm"><time datetime={t.data.verifiedAt.toISOString()}>{md(t.data.verifiedAt)}</time></TableCell>
+                  <TableCell class="tact"><a href={openHref(t)} {...extAttrs(t)} aria-label={`打开 ${t.data.name}`}>打开{isExt(t) && <span class="ext" aria-hidden="true">↗</span>}</a></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        <div class="empty" data-empty hidden><b>没有匹配</b>换个关键词，或者 <button type="button" class="text-blue" data-reset>清除筛选</button>。</div>
+        <div class="more js-only"><button type="button" data-more hidden={ts.total <= PAGE}>显示全部 {ts.total} 个 ↓</button></div>
+      </div>
     </div>
-  </main>
-</Layout>
+
+    <aside class="cols-r" aria-label="侧栏">
+      <SideWidget title="库内">
+        <div class="stat-g">
+          <div><div class="k">收录</div><div class="v">{ts.total}<i>个</i></div></div>
+          <div><div class="k">本地优先</div><div class="v">{ts.byTag['本地优先'] ?? 0}<i>个</i></div></div>
+          <div><div class="k">免费</div><div class="v">{ts.free}<i>个</i></div></div>
+          <div><div class="k">我做的</div><div class="v">{ts.mine}<i>个</i></div></div>
+        </div>
+      </SideWidget>
+      <SideWidget title="筛选条件">
+        <div class="tags">{sideTags.map((t) => <button type="button" data-link-key="tag" data-link-value={t} aria-pressed="false">{t}</button>)}</div>
+      </SideWidget>
+      <SideWidget title="最近新增">
+        <ul>{recent.map((t, i) => <li><a href={`#${t.id}`}><span class="n">{String(i + 1).padStart(2, '0')}</span>{t.data.name} · {t.data.tagline.split('，')[0]}</a></li>)}</ul>
+      </SideWidget>
+      <SideWidget title="如何收录">
+        <p class="txt">自己装过、用过两周以上、能说清它替我做了什么。收钱推荐的一律不收，会在条目标出。</p>
+      </SideWidget>
+    </aside>
+  </div>
+</Base>
 
 <script>
-  import { initAnimations } from '../../scripts/animate';
-  initAnimations();
+  import '../../scripts/list-filter';
+  import { onPageLoad } from '../../scripts/lifecycle';
+  // 排序切换时同步「按 X 排序」的说明文字
+  onPageLoad(() => {
+    const label = document.querySelector('[data-sort-label]');
+    const sync = () => {
+      const on = document.querySelector<HTMLElement>('[data-sort-btn][aria-pressed="true"]');
+      if (label && on) label.textContent = `按${on.textContent}排序`;
+    };
+    const mo = new MutationObserver(sync);
+    document.querySelectorAll('[data-sort-btn]').forEach((b) => mo.observe(b, { attributes: true, attributeFilter: ['aria-pressed'] }));
+    sync();
+    return () => mo.disconnect();
+  });
 </script>
-
-<style>
-  .tools-page {
-    padding-bottom: 6rem;
-  }
-  .body {
-    /* 与 PageHeader 内容区同宽：内容 max-width + 两侧内边距 */
-    max-width: calc(var(--max-width) + 3rem);
-    margin: 0 auto;
-    padding: 0 1.5rem;
-  }
-  .empty {
-    color: var(--muted);
-    font-size: 0.95rem;
-    padding: 3rem 0;
-  }
-  @media (max-width: 640px) {
-    .body {
-      padding: 0 1.25rem;
-    }
-  }
-</style>

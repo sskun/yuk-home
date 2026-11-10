@@ -1,0 +1,22 @@
+---
+// 404：走错路时立刻能找到内容——检索框 + 栏目入口
+import Base from '../layouts/Base.astro';
+import Icon from '../components/site/Icon.astro';
+import { NAV } from '../consts';
+---
+<Base title="页面不存在" description="这个地址没有内容。可以直接检索，或者从下面的栏目进去。" noindex>
+  <section class="nf">
+    <span class="kick"><i></i>404 · 页面不存在</span>
+    <h1>这里什么也没有。</h1>
+    <p>地址可能写错了，或者内容已经挪了位置。直接搜一下，或者从栏目进去。</p>
+    <button type="button" class="search w-full text-left" data-search-open style="cursor:text">
+      <Icon name="search" class="ic" />
+      <span class="flex-1 text-[15.5px] text-weak" style="height:48px;display:flex;align-items:center">搜情报、工具、文章、项目</span>
+      <span class="go">搜索</span>
+    </button>
+    <div class="go-list">
+      <a class="chip" href="/">首页</a>
+      {NAV.map((n) => <a class="chip" href={n.href}>{n.label}</a>)}
+    </div>
+  </section>
+</Base>

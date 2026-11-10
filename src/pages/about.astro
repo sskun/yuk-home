@@ -1,0 +1,93 @@
+---
+// 关于：叙事式，读完要记得住这个人。
+// 文案里的个人经历是 MOCK（见 consts.ts 的说明），正式上线前替换成真实内容。
+import Base from '../layouts/Base.astro';
+import Crumb from '../components/site/Crumb.astro';
+import Icon from '../components/site/Icon.astro';
+import SmartImage from '../components/ui/SmartImage.astro';
+import { SITE } from '../consts';
+import { getProjects } from '../lib/content';
+import { md } from '../lib/date';
+
+const { main } = await getProjects();
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  mainEntity: { '@type': 'Person', name: SITE.author, email: `mailto:${SITE.email}`, sameAs: [SITE.github], homeLocation: SITE.city },
+};
+---
+
+<Base title="关于" description="我叫余坤，在杭州写代码，主要是写工具。这个站是我维护的一份公开记录。" noindex mainClass="wrap" jsonLd={jsonLd}>
+  <div class="reader wide">
+    <Crumb items={[{ label: '关于' }]} />
+    <div class="hero2">
+      <div>
+        <span class="kick"><i></i>关于 · 御风行 Upwind · 最后更新 10.29</span>
+        <h1>我叫余坤，在{SITE.city}写代码。<br />主要是写工具。</h1>
+        <p class="lead">御风行是我维护的一份公开记录：我在看什么、做了什么、以及我判断事情的方式。它同时是我的名片、我的笔记本，和我的作品集。</p>
+      </div>
+      <div class="portrait has-art"><SmartImage src="/src/assets/brand/upwind-hero.png" alt="列子御风而行：一个人踏着上升的气流前行" widths={[440, 660]} sizes="220px" /><span class="cap">列子御风而行</span></div>
+    </div>
+
+    <div class="abody">
+      <p>做开发第八年。前端起家，后来把后端和部署也接了过来，现在主要写<b>工具</b>——那种装上去就不太需要再想起来的工具。</p>
+      <p>近两年注意力集中在 AI 工具链上：怎么让模型接进日常流程而不打断它，怎么让数据不出本机，怎么给一堆散落的会话和文档建一个能用的索引。这个站就是这些事情的副产品——记下来的东西越来越多，索性做成了可以给别人看的形状。</p>
+
+      <h2 id="name">为什么叫御风行</h2>
+      <div class="sub2">Upwind · 出自《庄子·逍遥游》</div>
+      <p>「列子御风而行，泠然善也。」——驾着风走，轻妙极了。我对 AI 的态度也是这样：<b>不造风，不等风，御风而行。</b>不去自己训模型，也不蹲在风口等下一个热点；用它，但往哪儿走由我自己定。</p>
+      <p>不过庄子这段话后面还有半句：「此虽免乎行，<b>犹有所待者也</b>。」列子御风，终究还得依赖风，算不上真正的逍遥。我也一样，我待的是 AI 这阵风。承认这一点，比假装自己不需要风更诚实。</p>
+      <p>英文名 Upwind 来自帆船：借着风，却能逆风往上走。借力，但不顺着风跑。</p>
+
+      <h2>现在在做什么</h2>
+      <div class="sub2">2026.10 · 更新于本周</div>
+      <ul class="now2">
+        <li>给 <b>拾迹 TraceMine</b> 补学习笔记的整理能力，让一次会话里学到的东西能沉淀下来。</li>
+        <li>把 <b>工具库</b> 的验证流程脚本化，让「30 天内验证过」不再靠手动改。</li>
+        <li>给 <b>图片治理</b> 加批量处理。</li>
+        <li>写一篇 <b>上下文压缩</b> 的实测，预计十一月。</li>
+        <li>接一些工具型的外包与咨询，远程为主。</li>
+      </ul>
+
+      <h2>我做的东西</h2>
+      <div class="sub2">{main.length} 个 · 全部本地优先</div>
+      <div class="aworks">
+        {main.map((p) => (
+          <a href={`/projects#${p.id}`}>
+            <div class="n">MINE{p.data.version && ` · ${p.data.version}`}</div>
+            <div class="t">{p.data.name}</div>
+            <div class="d">{p.data.oneLine.split('。')[0]}。</div>
+            <div class="m">{md(p.data.updated)} 更新</div>
+          </a>
+        ))}
+      </div>
+
+      <h2>我怎么用 AI</h2>
+      <div class="sub2">不是信仰，是默认姿势</div>
+      <p>我的默认配置是本地优先：补全、改写、格式化一律本地；长上下文总结和跨仓库检索走云端；只要内容里出现不能外发的东西，强制走本地。</p>
+      <p>这么做的理由不是省钱。真正的理由是<b>它把一次微决策从流程里删掉了</b>：我不再需要为每次提问判断「这个能不能发」。详细的记录写在<a href="/article/local-first-ai-tools">这篇</a>里。</p>
+      <div class="say"><b>我的判断</b>本地优先是一种默认姿势，不是信仰。它解决的是「默认不必外发」，不是「永远不要外发」。需要最新知识、超长上下文、或结果要给别人复现时，我一律走云端。</div>
+
+      <h2>我做内容的三条规矩</h2>
+      <div class="sub2">写在每一页的底下</div>
+      <p><b>没用过的不写。</b>工具库里每一条都至少用了两周，没实测的会标「未实测」。</p>
+      <p><b>标来源。</b>情报每条都挂出处，转述别人的会写明是转述。</p>
+      <p><b>错了留痕。</b>判断被推翻时不删原文，在下面补一句更正和日期。</p>
+
+      <h2>技术栈</h2>
+      <div class="sub2">用得顺手的那部分</div>
+      <p>TypeScript / Astro / React，Node.js 写后端和命令行工具，数据用 SQLite，浏览器端计算用 Web Worker 和 Canvas，部署在 Cloudflare。</p>
+      <p>这个站本身：Astro 静态生成，Cloudflare Pages 托管，没有后端；站内检索是构建期生成的索引，在浏览器里用 BM25 查询。源码在 <a href="https://github.com/sskun/yuk-home" target="_blank" rel="noopener noreferrer">GitHub</a>。</p>
+
+      <h2 id="contact">聊聊？</h2>
+      <div class="sub2">工具型项目 · 检索方案 · 图片处理管线</div>
+      <p>这几类都可以找我，也接短期咨询。远程为主，时区 UTC+8。</p>
+      <div class="contact">
+        <div class="lb">联系方式</div>
+        <a href={`mailto:${SITE.email}`}><Icon name="mail" size={14} />{SITE.email}</a>
+        <a href={SITE.github} target="_blank" rel="noopener noreferrer"><Icon name="github" size={14} />{SITE.githubLabel}</a>
+        <a href="/projects">看项目 →</a>
+      </div>
+    </div>
+  </div>
+</Base>
