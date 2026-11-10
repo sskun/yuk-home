@@ -1,0 +1,26 @@
+e2e/end-of-time.spec.ts
+  s_8862f33fa8d50d::t_847b3cba37fb3f 224-240
+docs/2026-11-09-时间尽头-首页视觉扩展.md
+  s_8862f33fa8d50d::t_30e4f429de17c6 3-31
+pnpm-lock.yaml
+  s_8862f33fa8d50d::t_f679147a4f0af0 26-28,41-43,60-62,271-273,1202-1204,1328-1333,1340-1342,1882-1884,1924-1926,2181-2183,2592-2594,3258-3259,3880-3881,4034-4044,4050-4051,4729-4730,4759-4760,5127-5128,5726
+src/components/end-of-time/scene.ts
+  s_8862f33fa8d50d::t_13915e9ddfd63f 40-107,145-181
+  s_8862f33fa8d50d::t_847b3cba37fb3f 125-132
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.52-trip",
+  "base_commit_sha": "c2b2f2a946d74844d271157cdfe0337786aa3915",
+  "prompts": {},
+  "sessions": {
+    "s_8862f33fa8d50d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1be01-edb3-7e22-b882-d6c9b8728433",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "sskun <28060476+sskun@users.noreply.github.com>"
+    }
+  }
+}
